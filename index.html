@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Gastos · Leonardo</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f3f4f6;color:#1f2937}
+
+/* HEADER */
+.header{background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;padding:28px 20px 48px}
+.header small{color:#c4b5fd;font-size:12px;display:block;margin-bottom:14px}
+.header-saldo-label{color:#c4b5fd;font-size:12px;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px}
+.header-saldo{font-size:38px;font-weight:800;margin-bottom:10px}
+.header-pills{display:flex;gap:8px;flex-wrap:wrap}
+.header-pill{background:rgba(255,255,255,.15);border-radius:99px;padding:5px 12px;font-size:12px;font-weight:600}
+.header-pill.green{background:rgba(34,197,94,.25)}
+.header-pill.red{background:rgba(239,68,68,.25)}
+.header-acum-label{color:#c4b5fd;font-size:10px;text-transform:uppercase;letter-spacing:.8px;margin-top:14px;margin-bottom:2px}
+.header-acum-wrap{display:flex;align-items:baseline;gap:8px}
+.header-acum{font-size:22px;font-weight:700}
+.header-acum-tag{font-size:10px;color:#c4b5fd;background:rgba(255,255,255,.12);border-radius:99px;padding:2px 8px;font-weight:600;letter-spacing:.4px;align-self:center}
+
+/* NAVEGAÇÃO DE MÊS/ANO */
+.month-nav-bar{background:white;border-radius:18px;display:flex;align-items:center;box-shadow:0 4px 16px rgba(0,0,0,.12);margin-bottom:14px;overflow:hidden;border:2px solid #ede9fe}
+.month-nav-bar button{background:transparent;border:none;cursor:pointer;transition:.15s;line-height:1;flex-shrink:0}
+.month-nav-bar button:hover{background:#f5f3ff}
+.month-nav-bar button:disabled{color:#d1d5db;cursor:default}
+.month-nav-bar button:disabled:hover{background:transparent}
+.month-nav-bar h2{flex:1;text-align:center;font-size:16px;font-weight:700;color:#4c1d95;letter-spacing:.3px}
+.btn-mes{color:#7c3aed;font-size:26px;font-weight:700;padding:14px 16px}
+.btn-ano{color:#a78bfa;font-size:18px;font-weight:700;padding:14px 10px}
+.nav-divider{width:1px;height:28px;background:#ede9fe;flex-shrink:0}
+
+/* WRAP */
+.wrap{max-width:520px;margin:-28px auto 0;padding:0 16px 40px}
+
+/* TABS */
+.tabs{background:white;border-radius:16px;display:flex;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08);margin-bottom:16px}
+.tab{flex:1;padding:13px 6px;font-size:13px;font-weight:500;border:none;background:transparent;color:#6b7280;cursor:pointer;border-radius:16px;transition:.2s}
+.tab.active{background:#7c3aed;color:white}
+
+/* CARD */
+.card{background:white;border-radius:18px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.06);border:1px solid #f3f4f6;margin-bottom:14px}
+.card h2{font-size:14px;font-weight:600;color:#374151;margin-bottom:12px}
+
+/* STATS GRID */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.stat-card{background:white;border-radius:18px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.06);border:1px solid #f3f4f6}
+.stat-label{font-size:11px;color:#9ca3af;margin-bottom:4px}
+.stat-val{font-size:22px;font-weight:800;color:#1f2937}
+.stat-val.green{color:#16a34a}
+.stat-val.red{color:#dc2626}
+
+/* SALDO CARD */
+.saldo-card{border-radius:18px;padding:16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.saldo-card.pos{background:linear-gradient(135deg,#dcfce7,#bbf7d0);border:1px solid #86efac}
+.saldo-card.neg{background:linear-gradient(135deg,#fee2e2,#fecaca);border:1px solid #fca5a5}
+.saldo-card .saldo-info small{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.saldo-card.pos .saldo-info small{color:#15803d}
+.saldo-card.neg .saldo-info small{color:#b91c1c}
+.saldo-card .saldo-val{font-size:28px;font-weight:800}
+.saldo-card.pos .saldo-val{color:#15803d}
+.saldo-card.neg .saldo-val{color:#b91c1c}
+.saldo-card .saldo-icon{font-size:36px}
+
+/* RECEITA BARRA */
+.rec-row{margin-bottom:10px}
+.rec-row-top{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px}
+.rec-bg{background:#dcfce7;border-radius:99px;height:10px}
+.rec-fill{height:10px;border-radius:99px;background:linear-gradient(90deg,#22c55e,#16a34a)}
+.rec-pct{text-align:right;font-size:11px;color:#9ca3af;margin-top:3px}
+
+/* BARRA CATEGORIA */
+.bar-row{margin-bottom:12px}
+.bar-row-top{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px}
+.bar-bg{background:#f3f4f6;border-radius:99px;height:8px}
+.bar-fill{height:8px;border-radius:99px}
+.bar-pct{text-align:right;font-size:11px;color:#9ca3af;margin-top:3px}
+
+/* TOP 5 */
+.top-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:12px;background:#f9fafb;margin-bottom:7px}
+.top-rank{font-size:13px;font-weight:800;color:#d1d5db;width:22px;flex-shrink:0}
+.top-info{flex:1;overflow:hidden}
+.top-info b{font-size:13px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top-info small{font-size:11px;color:#9ca3af}
+.top-val{font-weight:700;font-size:13px;white-space:nowrap}
+
+/* COMPARAÇÃO */
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px}
+.compare-box{border-radius:12px;padding:12px;text-align:center}
+.compare-box.prev{background:#f9fafb;border:1px solid #f3f4f6}
+.compare-box.curr{background:#f5f3ff;border:1px solid #ede9fe}
+.compare-box small{font-size:11px;color:#9ca3af;display:block;margin-bottom:3px}
+.compare-box.curr small{color:#8b5cf6}
+.compare-box big{font-size:20px;font-weight:800;color:#374151}
+.compare-box.curr big{color:#7c3aed}
+.compare-diff{text-align:center;font-size:13px;font-weight:600;padding:4px 0}
+
+/* GASTOS */
+.search{width:100%;padding:10px 14px;border-radius:12px;border:1px solid #e5e7eb;font-size:13px;outline:none;margin-bottom:10px}
+.filter-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px}
+.filter-btn{flex-shrink:0;padding:6px 14px;border-radius:99px;font-size:12px;font-weight:500;border:1px solid #e5e7eb;background:white;color:#6b7280;cursor:pointer}
+.filter-btn.active{background:#7c3aed;color:white;border-color:#7c3aed}
+
+/* STACK */
+.stack-group{position:relative;margin-bottom:20px;cursor:pointer}
+.stack-group .behind{position:absolute;width:100%;border-radius:14px;background:white;border:1px solid #f3f4f6;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.stack-group .behind.b1{top:5px;left:4px;width:calc(100% - 8px);opacity:.7}
+.stack-group .behind.b2{top:9px;left:8px;width:calc(100% - 16px);opacity:.45}
+.stack-count{position:absolute;top:-6px;right:-6px;background:#7c3aed;color:white;border-radius:99px;font-size:11px;font-weight:700;padding:2px 7px;z-index:10;box-shadow:0 2px 4px rgba(124,58,237,.4)}
+
+/* TX ITEM */
+.tx-item{background:white;border-radius:14px;border:1px solid #f3f4f6;padding:12px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 3px rgba(0,0,0,.04);position:relative;z-index:5}
+.tx-item.sub{border-radius:12px;background:#fafafa;margin-top:6px;box-shadow:none;border-color:#ede9fe}
+.tx-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.tx-info{flex:1;overflow:hidden}
+.tx-info b{font-size:13px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx-info small{font-size:11px;color:#9ca3af;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx-right{text-align:right;flex-shrink:0}
+.tx-right b{font-size:14px;font-weight:700;display:block;margin-bottom:4px}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;color:white}
+.expand-hint{text-align:center;font-size:11px;color:#8b5cf6;padding:6px 0 2px;font-weight:500}
+
+/* GRÁFICOS */
+.chart-wrap{overflow-x:auto;padding:4px 0}
+.pie-legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;justify-content:center}
+.pie-legend-item{display:flex;align-items:center;gap:5px;font-size:12px;color:#374151}
+.pie-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+/* SEÇÕES */
+.section{display:none}
+.section.visible{display:block}
+.empty{text-align:center;color:#9ca3af;padding:40px 20px;font-size:14px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <small>Leonardo · Controle Financeiro</small>
+  <div class="header-saldo-label">Saldo do Mês</div>
+  <div class="header-saldo" id="hd-saldo"></div>
+  <div class="header-pills">
+    <span class="header-pill green" id="hd-receita"></span>
+    <span class="header-pill red" id="hd-gasto"></span>
+  </div>
+  <div class="header-acum-label">Saldo Acumulado</div>
+  <div class="header-acum-wrap">
+    <div class="header-acum" id="hd-saldo-acum"></div>
+    <span class="header-acum-tag">desde abr/2026</span>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="month-nav-bar">
+    <button id="btn-prev-ano" class="btn-ano" onclick="navAno(-1)" title="Ano anterior">«</button>
+    <div class="nav-divider"></div>
+    <button id="btn-prev" class="btn-mes" onclick="navMes(-1)">‹</button>
+    <h2 id="mes-label"></h2>
+    <button id="btn-next" class="btn-mes" onclick="navMes(1)">›</button>
+    <div class="nav-divider"></div>
+    <button id="btn-next-ano" class="btn-ano" onclick="navAno(1)" title="Próximo ano">»</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showAba('resumo',this)">📊 Resumo</button>
+    <button class="tab" onclick="showAba('gastos',this)">📋 Gastos</button>
+    <button class="tab" onclick="showAba('grafico',this)">📈 Gráficos</button>
+  </div>
+
+  <div id="sec-resumo" class="section visible"></div>
+  <div id="sec-gastos" class="section"></div>
+  <div id="sec-grafico" class="section"></div>
+</div>
+
+<script>
+// ── GASTOS ────────────────────────────────────────────────────────
+const ALL_TX = [
+  { id:1,  data:"2026-04-01", valor:300.00,    estabelecimento:"Tania Moraes Ramos Andrade",          descricao:"Psicóloga",                        categoria:"Saúde",            pagamento:"Pix",    grupo:"psicologa" },
+  { id:2,  data:"2026-04-01", valor:24000.00,  estabelecimento:"Apartamento Verano",                  descricao:"Caução apartamento Verano",         categoria:"Moradia",          pagamento:"—",     semComprovante:true, grupo:"caucao-apartamento-verano" },
+  { id:3,  data:"2026-04-02", valor:6.00,       estabelecimento:"Maria Solange da Silva",               descricao:"Coco (água de coco)",               categoria:"Alimentação",      pagamento:"Pix",    grupo:"coco" },
+  { id:4,  data:"2026-04-02", valor:163.88,    estabelecimento:"Pharmacia Essentia",                   descricao:"Medicamento (Hidrocortisona)",       categoria:"Saúde",            pagamento:"Pix",    grupo:"pharmacia-essentia" },
+  { id:5,  data:"2026-04-03", valor:47.36,     estabelecimento:"Supermercado Soberano",                descricao:"Supermercado",                      categoria:"Alimentação",      pagamento:"Pix",    grupo:"supermercado-soberano" },
+  { id:6,  data:"2026-04-03", valor:300.00,    estabelecimento:"Paróquia Nossa Senhora do Desterro",   descricao:"Doação à paróquia",                 categoria:"Doações",          pagamento:"Pix",    grupo:"paroquia-desterro" },
+  { id:7,  data:"2026-04-04", valor:30.57,     estabelecimento:"Supermercado Soberano",                descricao:"Supermercado",                      categoria:"Alimentação",      pagamento:"Pix",    grupo:"supermercado-soberano" },
+  { id:8,  data:"2026-04-05", valor:3685.67,   estabelecimento:"Andre Luis S Goncalves Rocha",         descricao:"Aluguel apartamento Rosarinho",      categoria:"Moradia",          pagamento:"Boleto", grupo:"apartamento-rosarinho" },
+  { id:9,  data:"2026-04-05", valor:670.68,    estabelecimento:"All Care Adm Benef SP Ltda",           descricao:"Plano de saúde",                    categoria:"Saúde",            pagamento:"Boleto", grupo:"plano-saude" },
+  { id:10, data:"2026-04-05", valor:429.00,    estabelecimento:"MaxPan Desenvolvimento de Softwares",  descricao:"Sistema (software)",                categoria:"Serviços",         pagamento:"Pix",    grupo:"maxpan" },
+  { id:11, data:"2026-04-05", valor:44.91,     estabelecimento:"Claro",                                descricao:"Internet / Telefonia",              categoria:"Serviços",         pagamento:"Pix",    grupo:"claro" },
+  { id:12, data:"2026-04-06", valor:174.56,    estabelecimento:"Rosarinho Panificação Ltda",           descricao:"Padaria",                           categoria:"Alimentação",      pagamento:"Pix",    grupo:"rosarinho-panificacao" },
+  { id:13, data:"2026-04-06", valor:79.23,     estabelecimento:"Rosarinho Panificação Ltda",           descricao:"Almoço",                            categoria:"Restaurante",      pagamento:"Pix",    grupo:"rosarinho-panificacao" },
+  { id:14, data:"2026-04-06", valor:45.00,     estabelecimento:"Naipe Barber Shop",                    descricao:"Barbearia",                         categoria:"Beleza",           pagamento:"Pix",    grupo:"naipe-barber-shop" },
+  { id:15, data:"2026-04-06", valor:78.44,     estabelecimento:"O Açougão",                            descricao:"Carnes",                            categoria:"Alimentação",      pagamento:"Pix",    grupo:"o-acougao" },
+  { id:16, data:"2026-04-06", valor:300.00,    estabelecimento:"Tania Moraes Ramos Andrade",           descricao:"Psicoterapia",                      categoria:"Saúde",            pagamento:"Pix",    grupo:"psicologa" },
+  { id:17, data:"2026-04-07", valor:37.80,     estabelecimento:"Imifarma",                             descricao:"Farmácia",                          categoria:"Saúde",            pagamento:"Pix",    grupo:"imifarma" },
+  { id:18, data:"2026-04-07", valor:265.26,    estabelecimento:"Companhia Brasileira de Distribuição", descricao:"Supermercado (Extra/CBD)",           categoria:"Alimentação",      pagamento:"Pix",    grupo:"companhia-brasileira-distribuicao" },
+  { id:19, data:"2026-04-08", valor:90.07,     estabelecimento:"RD Saúde",                             descricao:"Farmácia",                          categoria:"Saúde",            pagamento:"Pix",    grupo:"rd-saude" },
+  { id:20, data:"2026-04-09", valor:3380.00,   estabelecimento:"Vitaleep Medicamentos Importados",     descricao:"Medicamento (Cytomel / Tireóide)",  categoria:"Saúde",            pagamento:"Pix",    grupo:"vitaleep-medicamentos" },
+  { id:21, data:"2026-04-09", valor:176.89,    estabelecimento:"E T De A Pessoa E Cia Ltda",           descricao:"Emissora de NF 1",                  categoria:"Serviços",         pagamento:"Pix",    grupo:"emissora-nf" },
+  { id:22, data:"2026-04-09", valor:145.50,    estabelecimento:"E T De A Pessoa E Cia Ltda",           descricao:"Emissora de NF 2",                  categoria:"Serviços",         pagamento:"Pix",    grupo:"emissora-nf" },
+  { id:23, data:"2026-04-09", valor:75.00,     estabelecimento:"Hyperlocal Soluções Consultoria",      descricao:"Manicure",                          categoria:"Beleza",           pagamento:"Pix",    grupo:"manicure" },
+  { id:24, data:"2026-04-09", valor:21.18,     estabelecimento:"Grao Emporio Natural",                 descricao:"Mercado natural",                   categoria:"Alimentação",      pagamento:"Pix",    grupo:"grao-emporio-natural" },
+  { id:25, data:"2026-04-09", valor:68.80,     estabelecimento:"Companhia Brasileira de Distribuição", descricao:"Supermercado (Extra/CBD)",           categoria:"Alimentação",      pagamento:"Pix",    grupo:"companhia-brasileira-distribuicao" },
+  { id:26, data:"2026-04-09", valor:50.93,     estabelecimento:"Empório Gastronômico da Praça",        descricao:"Mercado",                           categoria:"Alimentação",      pagamento:"Pix",    grupo:"emporio-gastronomico" },
+  { id:27, data:"2026-04-09", valor:412.43,    estabelecimento:"CELPE Pernambuco",                     descricao:"Energia elétrica",                  categoria:"Serviços",         pagamento:"Débito", grupo:"neo-energia-celpe" },
+  { id:28, data:"2026-04-09", valor:214.40,    estabelecimento:"Banco Afinz (Sem Parar)",              descricao:"Sem Parar",                         categoria:"Transporte",       pagamento:"Boleto", grupo:"sem-parar" },
+  { id:29, data:"2026-04-09", valor:549.0, estabelecimento:"Hipolito Alianças", descricao:"Anel (parcela 09/10)", categoria:"Outros", pagamento:"Cartão", grupo:"hipolito-aliancas" },
+  { id:30, data:"2026-04-09", valor:84.49, estabelecimento:"Ferreira Costa", descricao:"Ferragens/materiais (07/10)", categoria:"Casa", pagamento:"Cartão", grupo:"ferreira-costa" },
+  { id:31, data:"2026-04-09", valor:126.41, estabelecimento:"Ferreira Costa", descricao:"Ferragens/materiais (07/10)", categoria:"Casa", pagamento:"Cartão", grupo:"ferreira-costa" },
+  { id:32, data:"2026-04-09", valor:157.74, estabelecimento:"Ferreira Costa", descricao:"Ferragens/materiais (04/10)", categoria:"Casa", pagamento:"Cartão", grupo:"ferreira-costa" },
+  { id:33, data:"2026-04-09", valor:75.0, estabelecimento:"Wow Brow Bar", descricao:"Design de sobrancelha (04/04)", categoria:"Beleza", pagamento:"Cartão", grupo:"wow-brow-bar" },
+  { id:34, data:"2026-04-09", valor:50.0, estabelecimento:"Wow Brow Bar", descricao:"Design de sobrancelha (03/06)", categoria:"Beleza", pagamento:"Cartão", grupo:"wow-brow-bar" },
+  { id:35, data:"2026-03-03", valor:143.0, estabelecimento:"Zig Yokocho", descricao:"Restaurante", categoria:"Restaurante", pagamento:"Cartão", grupo:"zig-yokocho" },
+  { id:36, data:"2026-03-04", valor:190.94, estabelecimento:"Drogasil", descricao:"Farmácia", categoria:"Saúde", pagamento:"Cartão", grupo:"drogasil" },
+  { id:37, data:"2026-03-04", valor:10.0, estabelecimento:"Be Park", descricao:"Estacionamento", categoria:"Transporte", pagamento:"Cartão", grupo:"be-park" },
+  { id:38, data:"2026-03-15", valor:176.0, estabelecimento:"PDV Nhac Nhec", descricao:"Restaurante", categoria:"Restaurante", pagamento:"Cartão", grupo:"nhac-nhec" },
+  { id:39, data:"2026-03-15", valor:349.98, estabelecimento:"Constance", descricao:"Roupa / vestuário", categoria:"Vestuário", pagamento:"Cartão", grupo:"constance" },
+  { id:40, data:"2026-03-15", valor:67.87, estabelecimento:"São Braz Coffee Plaza", descricao:"Café / lanche", categoria:"Alimentação", pagamento:"Cartão", grupo:"sao-braz" },
+  { id:41, data:"2026-03-15", valor:23.0, estabelecimento:"NE Park", descricao:"Estacionamento", categoria:"Transporte", pagamento:"Cartão", grupo:"ne-park" },
+  { id:42, data:"2026-03-16", valor:318.87, estabelecimento:"Pão de Açúcar", descricao:"Supermercado", categoria:"Alimentação", pagamento:"Cartão", grupo:"pao-de-acucar" },
+  { id:43, data:"2026-03-18", valor:124.7, estabelecimento:"Pizzaria Atlântico", descricao:"Restaurante", categoria:"Restaurante", pagamento:"Cartão", grupo:"pizzaria-atlantico" },
+  { id:44, data:"2026-03-19", valor:160.68, estabelecimento:"G E G Cosméticos", descricao:"Cosméticos", categoria:"Beleza", pagamento:"Cartão", grupo:"geg-cosmeticos" },
+  { id:45, data:"2026-03-19", valor:100.0, estabelecimento:"Posto do Polo Pina", descricao:"Combustível", categoria:"Transporte", pagamento:"Cartão", grupo:"posto-polo-pina" },
+  { id:46, data:"2026-03-19", valor:80.0, estabelecimento:"Sephora Riomar", descricao:"Cosméticos / perfumaria", categoria:"Beleza", pagamento:"Cartão", grupo:"sephora" },
+  { id:47, data:"2026-03-19", valor:15.5, estabelecimento:"Mobilidade Recife Park", descricao:"Estacionamento", categoria:"Transporte", pagamento:"Cartão", grupo:"mobilidade-recife-park" },
+  { id:48, data:"2026-03-21", valor:401.01, estabelecimento:"Pão de Açúcar", descricao:"Supermercado", categoria:"Alimentação", pagamento:"Cartão", grupo:"pao-de-acucar" },
+  { id:49, data:"2026-03-21", valor:149.6, estabelecimento:"Petrocal Rosarinho", descricao:"Combustível", categoria:"Transporte", pagamento:"Cartão", grupo:"petrocal-rosarinho" },
+  { id:50, data:"2026-03-21", valor:61.0, estabelecimento:"Kftia Culinária Libanesa", descricao:"Restaurante", categoria:"Restaurante", pagamento:"Cartão", grupo:"kftia-culinaria" },
+  { id:51, data:"2026-03-21", valor:311.9, estabelecimento:"Kftia Culinária Libanesa", descricao:"Restaurante", categoria:"Restaurante", pagamento:"Cartão", grupo:"kftia-culinaria" },
+  { id:52, data:"2026-03-24", valor:36.7, estabelecimento:"D Gelateria", descricao:"Sorveteria / café", categoria:"Alimentação", pagamento:"Cartão", grupo:"d-gelateria" },
+  { id:53, data:"2026-03-24", valor:200.0, estabelecimento:"Petrocal Rosarinho", descricao:"Combustível", categoria:"Transporte", pagamento:"Cartão", grupo:"petrocal-rosarinho" },
+  { id:54, data:"2026-03-24", valor:149.38, estabelecimento:"Greenmix Alimentos", descricao:"Alimentação saudável", categoria:"Alimentação", pagamento:"Cartão", grupo:"greenmix" },
+  { id:55, data:"2026-03-27", valor:27.0, estabelecimento:"Dois Tons Gelateria", descricao:"Sorveteria", categoria:"Alimentação", pagamento:"Cartão", grupo:"dois-tons-gelateria" },
+  { id:56, data:"2026-03-27", valor:61.28, estabelecimento:"Extra Farma", descricao:"Farmácia", categoria:"Saúde", pagamento:"Cartão", grupo:"extra-farma" },
+  { id:57, data:"2026-03-27", valor:11.58, estabelecimento:"Farmácia Permanente", descricao:"Farmácia", categoria:"Saúde", pagamento:"Cartão", grupo:"farmacia-permanente" },
+  { id:58, data:"2026-03-28", valor:200.0, estabelecimento:"Posto Arruda", descricao:"Combustível", categoria:"Transporte", pagamento:"Cartão", grupo:"posto-arruda" },
+  { id:59, data:"2026-03-28", valor:88.0, estabelecimento:"Sabor da Praça", descricao:"Restaurante", categoria:"Restaurante", pagamento:"Cartão", grupo:"sabor-da-praca" },
+  { id:60, data:"2026-03-28", valor:223.4, estabelecimento:"Pão de Açúcar", descricao:"Supermercado", categoria:"Alimentação", pagamento:"Cartão", grupo:"pao-de-acucar" },
+  { id:61, data:"2026-03-29", valor:197.17, estabelecimento:"Drogaria São Paulo", descricao:"Farmácia", categoria:"Saúde", pagamento:"Cartão", grupo:"drogaria-sao-paulo" },
+  { id:62, data:"2026-03-29", valor:5.59, estabelecimento:"Drogaria São Paulo", descricao:"Farmácia", categoria:"Saúde", pagamento:"Cartão", grupo:"drogaria-sao-paulo" },
+  { id:63, data:"2026-03-29", valor:125.4, estabelecimento:"A Porchetta", descricao:"Restaurante", categoria:"Restaurante", pagamento:"Cartão", grupo:"a-porchetta" },
+  { id:64, data:"2026-03-29", valor:257.6, estabelecimento:"A V da Cruz", descricao:"Vestuário", categoria:"Vestuário", pagamento:"Cartão", grupo:"av-da-cruz" },
+  { id:65, data:"2026-03-29", valor:15.5, estabelecimento:"Mobilidade Recife Park", descricao:"Estacionamento", categoria:"Transporte", pagamento:"Cartão", grupo:"mobilidade-recife-park" },
+  { id:66, data:"2026-03-29", valor:33.0, estabelecimento:"Borelli", descricao:"Vestuário / acessórios", categoria:"Vestuário", pagamento:"Cartão", grupo:"borelli" },
+  { id:67, data:"2026-03-29", valor:28.0, estabelecimento:"Borelli", descricao:"Vestuário / acessórios", categoria:"Vestuário", pagamento:"Cartão", grupo:"borelli" },
+  { id:68, data:"2026-03-29", valor:107.36, estabelecimento:"São Braz L1", descricao:"Alimentação", categoria:"Alimentação", pagamento:"Cartão", grupo:"sao-braz" },
+  { id:69, data:"2026-03-30", valor:26.97, estabelecimento:"Convem Alimentos", descricao:"Alimentação", categoria:"Alimentação", pagamento:"Cartão", grupo:"convem-alimentos" },
+  { id:70, data:"2026-03-30", valor:7.0, estabelecimento:"MP Conveniência", descricao:"Alimentação", categoria:"Alimentação", pagamento:"Cartão", grupo:"mp-conveniencia" },
+  { id:71, data:"2026-03-30", valor:36.32, estabelecimento:"Cia Santos Alimentos", descricao:"Alimentação", categoria:"Alimentação", pagamento:"Cartão", grupo:"cia-santos-alimentos" },
+  { id:72, data:"2026-04-02", valor:25.0, estabelecimento:"Anuidade Santander", descricao:"Anuidade cartão Santander", categoria:"Serviços", pagamento:"Cartão", grupo:"anuidade-santander" },
+  { id:73, data:"2026-04-09", valor:69.0, estabelecimento:"Organiza Cursos", descricao:"Curso online (11/12)", categoria:"Educação", pagamento:"Cartão", grupo:"organiza-cursos" },
+  { id:74, data:"2026-04-09", valor:1227.81, estabelecimento:"TAP (viagem)", descricao:"Passagem aérea TAP (08/10)", categoria:"Viagem", pagamento:"Cartão", grupo:"tap-viagem" },
+  { id:75, data:"2026-04-09", valor:109.56, estabelecimento:"Mercado Livre", descricao:"Compra online (08/10)", categoria:"Compras Online", pagamento:"Cartão", grupo:"mercado-livre" },
+  { id:76, data:"2026-04-09", valor:39.02, estabelecimento:"Mercado Livre", descricao:"Compra online (07/09)", categoria:"Compras Online", pagamento:"Cartão", grupo:"mercado-livre" },
+  { id:77, data:"2026-04-09", valor:13.9, estabelecimento:"Amazon Prime BR", descricao:"Assinatura Amazon Prime (07/12)", categoria:"Assinaturas", pagamento:"Cartão", grupo:"amazon-prime" },
+  { id:78, data:"2026-04-09", valor:207.3, estabelecimento:"Mercado Livre", descricao:"Compra online (07/10)", categoria:"Compras Online", pagamento:"Cartão", grupo:"mercado-livre" },
+  { id:79, data:"2026-04-09", valor:18.49, estabelecimento:"Mercado Livre", descricao:"Compra online (06/06)", categoria:"Compras Online", pagamento:"Cartão", grupo:"mercado-livre" },
+  { id:80, data:"2026-04-09", valor:87.81, estabelecimento:"Estratégia Concursos", descricao:"Curso/assinatura (06/12)", categoria:"Educação", pagamento:"Cartão", grupo:"estrategia-concursos" },
+  { id:81, data:"2026-04-09", valor:203.49, estabelecimento:"Magalu", descricao:"Compra online (06/10)", categoria:"Compras Online", pagamento:"Cartão", grupo:"magalu" },
+  { id:82, data:"2026-04-09", valor:130.17, estabelecimento:"Quadrante Editora", descricao:"Livro/publicação (05/08)", categoria:"Educação", pagamento:"Cartão", grupo:"quadrante-editora" },
+  { id:83, data:"2026-04-09", valor:42.95, estabelecimento:"Mercado Livre", descricao:"Compra online (05/06)", categoria:"Compras Online", pagamento:"Cartão", grupo:"mercado-livre" },
+  { id:84, data:"2026-04-09", valor:22.9, estabelecimento:"Mercado Livre", descricao:"Compra online (05/10)", categoria:"Compras Online", pagamento:"Cartão", grupo:"mercado-livre" },
+  { id:85, data:"2026-04-09", valor:42.25, estabelecimento:"Mercado Livre", descricao:"Compra online (04/04)", categoria:"Compras Online", pagamento:"Cartão", grupo:"mercado-livre" },
+  { id:86, data:"2026-04-09", valor:69.1, estabelecimento:"Mercado Livre", descricao:"Compra online (04/04)", categoria:"Compras Online", pagamento:"Cartão", grupo:"mercado-livre" },
+  { id:87, data:"2026-04-09", valor:378.8, estabelecimento:"Instituto Puerfamilia", descricao:"Saúde familiar (04/06)", categoria:"Saúde", pagamento:"Cartão", grupo:"instituto-puerfamilia" },
+  { id:88, data:"2026-04-09", valor:93.44, estabelecimento:"Mercado Livre", descricao:"Compra online (03/03)", categoria:"Compras Online", pagamento:"Cartão", grupo:"mercado-livre" },
+  { id:89, data:"2026-04-09", valor:98.72, estabelecimento:"Mercado Livre", descricao:"Compra online (03/03)", categoria:"Compras Online", pagamento:"Cartão", grupo:"mercado-livre" },
+  { id:90, data:"2026-04-09", valor:298.52, estabelecimento:"Movida (aluguel carro)", descricao:"Aluguel de carro (03/03)", categoria:"Transporte", pagamento:"Cartão", grupo:"movida" },
+  { id:91, data:"2026-04-09", valor:207.5, estabelecimento:"Amazon BR", descricao:"Compra Amazon (01/02)", categoria:"Compras Online", pagamento:"Cartão", grupo:"amazon-br" },
+  { id:92, data:"2026-03-02", valor:9.99, estabelecimento:"Google One", descricao:"Armazenamento Google", categoria:"Assinaturas", pagamento:"Cartão", grupo:"google-one" },
+  { id:93, data:"2026-03-02", valor:109.16, estabelecimento:"OpenAI ChatGPT", descricao:"Assinatura ChatGPT", categoria:"Assinaturas", pagamento:"Cartão", grupo:"openai-chatgpt" },
+  { id:94, data:"2026-03-02", valor:3.82, estabelecimento:"IOF exterior", descricao:"IOF (OpenAI)", categoria:"Impostos", pagamento:"Cartão", grupo:"iof-exterior" },
+  { id:95, data:"2026-03-03", valor:79.9, estabelecimento:"Serv Nuvem Intelbras", descricao:"Nuvem / câmeras Intelbras", categoria:"Serviços", pagamento:"Cartão", grupo:"intelbras-nuvem" },
+  { id:96, data:"2026-03-04", valor:44.73, estabelecimento:"JM Oliveira Alimentos", descricao:"Alimentação (entrega)", categoria:"Alimentação", pagamento:"Cartão", grupo:"jm-oliveira" },
+  { id:97, data:"2026-03-05", valor:48.17, estabelecimento:"Amazon BR", descricao:"Compra Amazon", categoria:"Compras Online", pagamento:"Cartão", grupo:"amazon-br" },
+  { id:98, data:"2026-03-06", valor:47.9, estabelecimento:"Amazon BR", descricao:"Compra Amazon", categoria:"Compras Online", pagamento:"Cartão", grupo:"amazon-br" },
+  { id:99, data:"2026-03-06", valor:53.99, estabelecimento:"JM Oliveira Alimentos", descricao:"Alimentação (entrega)", categoria:"Alimentação", pagamento:"Cartão", grupo:"jm-oliveira" },
+  { id:100, data:"2026-03-07", valor:36.81, estabelecimento:"Sumo Restaurante", descricao:"Restaurante", categoria:"Restaurante", pagamento:"Cartão", grupo:"sumo-restaurante" },
+  { id:101, data:"2026-03-10", valor:39.9, estabelecimento:"Jusbrasil", descricao:"Assinatura Jusbrasil", categoria:"Assinaturas", pagamento:"Cartão", grupo:"jusbrasil" },
+  { id:102, data:"2026-03-11", valor:95.84, estabelecimento:"Mercado Livre", descricao:"Compra online", categoria:"Compras Online", pagamento:"Cartão", grupo:"mercado-livre" },
+  { id:103, data:"2026-03-11", valor:30.99, estabelecimento:"Google House Chores", descricao:"App Google", categoria:"Assinaturas", pagamento:"Cartão", grupo:"google-house-chores" },
+  { id:104, data:"2026-03-12", valor:69.08, estabelecimento:"Mercado Livre", descricao:"Compra online", categoria:"Compras Online", pagamento:"Cartão", grupo:"mercado-livre" },
+  { id:105, data:"2026-03-13", valor:18.95, estabelecimento:"Uber", descricao:"Transporte Uber", categoria:"Transporte", pagamento:"Cartão", grupo:"uber" },
+  { id:106, data:"2026-03-13", valor:15.6, estabelecimento:"Uber", descricao:"Transporte Uber", categoria:"Transporte", pagamento:"Cartão", grupo:"uber" },
+  { id:107, data:"2026-03-13", valor:17.36, estabelecimento:"Uber", descricao:"Transporte Uber", categoria:"Transporte", pagamento:"Cartão", grupo:"uber" },
+  { id:108, data:"2026-03-13", valor:13.97, estabelecimento:"Uber", descricao:"Transporte Uber", categoria:"Transporte", pagamento:"Cartão", grupo:"uber" },
+  { id:109, data:"2026-03-14", valor:42.88, estabelecimento:"JC Congelados", descricao:"Alimentação (congelados)", categoria:"Alimentação", pagamento:"Cartão", grupo:"jc-congelados" },
+  { id:110, data:"2026-03-14", valor:253.88, estabelecimento:"Salty Burger", descricao:"Restaurante", categoria:"Restaurante", pagamento:"Cartão", grupo:"salty-burger" },
+  { id:111, data:"2026-03-14", valor:23.4, estabelecimento:"Charles (restaurante)", descricao:"Restaurante", categoria:"Restaurante", pagamento:"Cartão", grupo:"charles-restaurante" },
+  { id:112, data:"2026-03-19", valor:88.81, estabelecimento:"LM Restaurante", descricao:"Restaurante", categoria:"Restaurante", pagamento:"Cartão", grupo:"lm-restaurante" },
+  { id:113, data:"2026-03-20", valor:204.95, estabelecimento:"Amazon BR", descricao:"Compra Amazon", categoria:"Compras Online", pagamento:"Cartão", grupo:"amazon-br" },
+  { id:114, data:"2026-03-22", valor:67.92, estabelecimento:"Amazon BR", descricao:"Compra Amazon", categoria:"Compras Online", pagamento:"Cartão", grupo:"amazon-br" },
+  { id:115, data:"2026-03-23", valor:75.5, estabelecimento:"Amazon Marketplace", descricao:"Compra Amazon", categoria:"Compras Online", pagamento:"Cartão", grupo:"amazon-br" },
+  { id:116, data:"2026-03-24", valor:8.9, estabelecimento:"MP Melimais", descricao:"Compra Mercado Livre", categoria:"Compras Online", pagamento:"Cartão", grupo:"mercado-livre" },
+  { id:117, data:"2026-03-26", valor:21.9, estabelecimento:"Google YouTube", descricao:"Assinatura YouTube Premium", categoria:"Assinaturas", pagamento:"Cartão", grupo:"google-youtube" },
+  { id:118, data:"2026-03-26", valor:7.95, estabelecimento:"iFood Club", descricao:"Assinatura iFood Club", categoria:"Assinaturas", pagamento:"Cartão", grupo:"ifood-club" },
+  { id:119, data:"2026-03-28", valor:116.21, estabelecimento:"Claude AI Subscription", descricao:"Assinatura Claude AI", categoria:"Assinaturas", pagamento:"Cartão", grupo:"claude-ai" },
+  { id:120, data:"2026-03-28", valor:4.07, estabelecimento:"IOF exterior", descricao:"IOF (Claude AI)", categoria:"Impostos", pagamento:"Cartão", grupo:"iof-exterior" },
+  { id:121, data:"2026-03-29", valor:12.5, estabelecimento:"Google One", descricao:"Armazenamento Google", categoria:"Assinaturas", pagamento:"Cartão", grupo:"google-one" },
+  { id:122, data:"2026-03-31", valor:240.17, estabelecimento:"Mercado Livre", descricao:"Compra online", categoria:"Compras Online", pagamento:"Cartão", grupo:"mercado-livre" },
+  { id:123, data:"2026-01-15", valor:2187.56, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 1/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:124, data:"2026-04-15", valor:1640.9, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 2/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:125, data:"2026-07-15", valor:1668.13, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 3/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:126, data:"2026-10-15", valor:1722.62, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 4/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:127, data:"2026-11-15", valor:1362.15, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 5/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:128, data:"2026-12-15", valor:1329.0, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 6/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:129, data:"2027-01-15", valor:1348.8, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 7/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:130, data:"2027-02-15", valor:1290.47, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 8/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:131, data:"2027-03-15", valor:1309.94, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 9/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:132, data:"2027-04-15", valor:1354.0, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 10/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:133, data:"2027-05-15", valor:1322.12, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 11/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:134, data:"2027-06-15", valor:1290.88, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 12/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:135, data:"2027-07-15", valor:1333.02, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 13/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:136, data:"2027-08-15", valor:1326.03, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 14/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:137, data:"2027-09-15", valor:1295.43, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 15/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:138, data:"2027-10-15", valor:1288.76, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 16/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:139, data:"2027-11-15", valor:1259.12, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 17/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:140, data:"2027-12-15", valor:1275.41, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 18/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:141, data:"2028-01-15", valor:1313.42, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 19/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:142, data:"2028-02-15", valor:1262.07, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 20/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:143, data:"2028-03-15", valor:1212.02, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 21/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:144, data:"2028-04-15", valor:1270.1, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 22/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:145, data:"2028-05-15", valor:1178.92, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 23/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:146, data:"2028-06-15", valor:1276.87, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 24/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:147, data:"2028-07-15", valor:1228.71, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 25/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:148, data:"2028-08-15", valor:1222.04, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 26/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:149, data:"2028-09-15", valor:1235.15, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 27/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:150, data:"2028-10-15", valor:1189.23, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 28/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:151, data:"2028-11-15", valor:1202.02, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 29/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:152, data:"2028-12-15", valor:1176.53, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 30/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:153, data:"2029-01-15", valor:1151.68, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 31/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:154, data:"2029-02-15", valor:1182.0, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 32/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:155, data:"2029-03-15", valor:1157.47, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 33/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:156, data:"2029-04-15", valor:1168.66, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 34/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:157, data:"2029-05-15", valor:1144.76, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 35/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:158, data:"2029-06-15", valor:1172.23, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 36/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:159, data:"2029-07-15", valor:1148.64, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 37/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:160, data:"2029-08-15", valor:1158.25, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 38/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:161, data:"2029-09-15", valor:1151.25, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 39/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:162, data:"2029-10-15", valor:1097.37, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 40/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:163, data:"2029-11-15", valor:1137.27, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 41/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:164, data:"2029-12-15", valor:1100.29, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 42/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:165, data:"2030-01-15", valor:1079.27, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 43/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:166, data:"2030-02-15", valor:1130.66, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 44/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:167, data:"2030-03-15", valor:1053.18, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 45/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:168, data:"2030-04-15", valor:1088.6, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 46/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:169, data:"2030-05-15", valor:1068.53, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 47/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:170, data:"2030-06-15", valor:1101.42, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 48/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:171, data:"2030-07-15", valor:1043.07, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 49/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:172, data:"2030-08-15", valor:1086.8, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 50/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:173, data:"2030-09-15", valor:1067.36, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 51/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:174, data:"2030-10-15", valor:1048.56, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 52/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:175, data:"2030-11-15", valor:1064.87, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 53/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:176, data:"2030-12-15", valor:1012.9, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 54/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:177, data:"2031-01-15", valor:1017.7, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 55/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:178, data:"2031-02-15", valor:1042.94, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 56/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:179, data:"2031-03-15", valor:984.59, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 57/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:180, data:"2031-04-15", valor:998.64, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 58/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:181, data:"2031-05-15", valor:992.29, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 59/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:182, data:"2031-06-15", valor:995.19, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 60/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:183, data:"2031-07-15", valor:988.52, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 61/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:184, data:"2031-08-15", valor:999.08, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 62/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:185, data:"2031-09-15", valor:975.17, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 63/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:186, data:"2031-10-15", valor:976.48, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 64/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:187, data:"2031-11-15", valor:977.15, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 65/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:188, data:"2031-12-15", valor:940.49, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 66/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:189, data:"2032-01-15", valor:948.48, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 67/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:190, data:"2032-02-15", valor:935.11, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 68/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:191, data:"2032-03-15", valor:928.76, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 69/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:192, data:"2032-04-15", valor:934.53, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 70/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:193, data:"2032-05-15", valor:921.8, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 71/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:194, data:"2032-06-15", valor:909.7, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 72/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:195, data:"2032-07-15", valor:913.56, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 73/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:196, data:"2032-08-15", valor:906.57, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 74/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:197, data:"2032-09-15", valor:895.11, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 75/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:198, data:"2032-10-15", valor:888.44, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 76/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:199, data:"2032-11-15", valor:877.94, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 77/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:200, data:"2032-12-15", valor:875.09, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 78/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:201, data:"2033-01-15", valor:874.8, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 79/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:202, data:"2033-02-15", valor:861.75, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 80/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:203, data:"2033-03-15", valor:847.42, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 81/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:204, data:"2033-04-15", valor:852.87, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 82/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:205, data:"2033-05-15", valor:837.91, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 83/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:206, data:"2033-06-15", valor:836.66, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 84/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:207, data:"2033-07-15", valor:828.39, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 85/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:208, data:"2033-08-15", valor:821.72, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 86/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:209, data:"2033-09-15", valor:815.68, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 87/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" },
+  { id:210, data:"2033-10-15", valor:808.38, estabelecimento:"Financiamento - Máquinas Lavanderia", descricao:"Parcela 88/88 - Financiamento Máquinas Lavanderia", categoria:"Serviços", pagamento:"Boleto", grupo:"financiamento-maquinas-lavanderia" }
+];
+
+// ── RECEITAS ──────────────────────────────────────────────────────────────────
+// Fonte: Receitas.txt — atualizar manualmente a cada mês
+const ALL_RECEITAS = [
+  { mes:"2026-04", fonte:"Lavanderia", valor:35801.70 },
+  { mes:"2026-04", fonte:"Pousada",    valor:19000.00 },
+];
+
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+const CATS = {
+  "Alimentação": { cor:"#22c55e", icone:"🍽️" },
+  "Transporte":  { cor:"#3b82f6", icone:"🚗" },
+  "Saúde":       { cor:"#ef4444", icone:"💊" },
+  "Moradia":     { cor:"#f97316", icone:"🏠" },
+  "Lazer":       { cor:"#a855f7", icone:"🎉" },
+  "Compras":     { cor:"#ec4899", icone:"🛍️" },
+  "Serviços":    { cor:"#06b6d4", icone:"🔧" },
+  "Rayssa":      { cor:"#f43f8e", icone:"💕" },
+  "Outros":      { cor:"#6b7280", icone:"📦" },
+};
+
+const NEGOCIOS = {
+  "Lavanderia": { cor:"#0ea5e9", icone:"👔" },
+  "Pousada":    { cor:"#f59e0b", icone:"🏨" },
+};
+
+const MESES_PT = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+const fmt    = v => v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const fmtD   = d => { const [,m,day]=d.split("-"); return day+"/"+m; };
+const mesKey = d => d.slice(0,7);
+const mesLabel = k => { const [y,m]=k.split("-"); return MESES_PT[+m-1]+" "+y; };
+
+// União de todos os meses com dados (gastos ou receitas) + mês atual
+const MES_HOJE = mesKey(new Date().toISOString());
+const todosOsMeses = [...new Set([
+  ...ALL_TX.map(t=>mesKey(t.data)),
+  ...ALL_RECEITAS.map(r=>r.mes),
+  MES_HOJE  // garante que o mês atual sempre aparece, mesmo sem dados
+])].sort();
+
+// Abre sempre no mês atual
+let mesIdx = todosOsMeses.indexOf(MES_HOJE);
+let filtroAtivo = "Todas";
+let busca = "";
+const expandidos = new Set();
+
+// ── NAVEGAÇÃO ─────────────────────────────────────────────────────────────────
+function navMes(dir) {
+  mesIdx = Math.max(0, Math.min(todosOsMeses.length-1, mesIdx+dir));
+  expandidos.clear();
+  render();
+}
+function navAno(dir) {
+  const [y, m] = todosOsMeses[mesIdx].split("-");
+  const targetYear = parseInt(y) + dir;
+  const targetKey  = `${targetYear}-${m}`;
+  // Tenta o mesmo mês no ano alvo
+  let idx = todosOsMeses.indexOf(targetKey);
+  if (idx === -1) {
+    // Busca o mês mais próximo dentro do ano alvo
+    const candidatos = todosOsMeses
+      .map((k, i) => ({ k, i }))
+      .filter(x => x.k.startsWith(String(targetYear) + "-"));
+    if (candidatos.length === 0) return; // Ano não existe
+    idx = candidatos.reduce((best, cur) => {
+      const diff = v => Math.abs(parseInt(v.k.split("-")[1]) - parseInt(m));
+      return diff(cur) < diff(best) ? cur : best;
+    }).i;
+  }
+  mesIdx = idx;
+  expandidos.clear();
+  render();
+}
+function mesAtual()     { return todosOsMeses[mesIdx]; }
+function txDoMes(k)     { return ALL_TX.filter(t=>mesKey(t.data)===k); }
+function recDoMes(k)    { return ALL_RECEITAS.filter(r=>r.mes===k); }
+function txMesAnterior(){ return mesIdx===0 ? null : txDoMes(todosOsMeses[mesIdx-1]); }
+
+// ── AGRUPAMENTO ───────────────────────────────────────────────────────────────
+function agrupar(txs) {
+  const map = {};
+  txs.forEach(t => {
+    const key = t.grupo || ("_solo_"+t.id);
+    if(!map[key]) map[key] = [];
+    map[key].push(t);
+  });
+  return Object.values(map)
+    .map(g => g.sort((a,b)=>b.data.localeCompare(a.data)))
+    .sort((a,b)=>b[0].data.localeCompare(a[0].data));
+}
+
+// ── RENDER PRINCIPAL ──────────────────────────────────────────────────────────
+function render() {
+  const k       = mesAtual();
+  const txs     = txDoMes(k);
+  const recs    = recDoMes(k);
+  const totalGasto   = txs.reduce((s,t)=>s+t.valor, 0);
+  const totalReceita = recs.reduce((s,r)=>s+r.valor, 0);
+  const saldo        = totalReceita - totalGasto;
+  const prev         = txMesAnterior();
+  const prevTotal    = prev ? prev.reduce((s,t)=>s+t.valor,0) : null;
+
+  // Saldo acumulado (a partir de 2026-04)
+  const INICIO_ACUM = "2026-04";
+  const acumReceita = ALL_RECEITAS.filter(r => r.mes >= INICIO_ACUM && r.mes <= k).reduce((s,r)=>s+r.valor, 0);
+  const acumGasto   = ALL_TX.filter(t => mesKey(t.data) >= INICIO_ACUM && mesKey(t.data) <= k).reduce((s,t)=>s+t.valor, 0);
+  const saldoAcum   = acumReceita - acumGasto;
+
+  // Header
+  document.getElementById("mes-label").textContent       = mesLabel(k);
+  document.getElementById("hd-saldo").textContent        = fmt(saldo);
+  document.getElementById("hd-saldo").style.color        = saldo >= 0 ? "#a7f3d0" : "#fca5a5";
+  document.getElementById("hd-receita").textContent      = "📈 Receitas: "+fmt(totalReceita);
+  document.getElementById("hd-gasto").textContent        = "💸 Gastos: "+fmt(totalGasto);
+  document.getElementById("hd-saldo-acum").textContent   = fmt(saldoAcum);
+  document.getElementById("hd-saldo-acum").style.color   = saldoAcum >= 0 ? "#a7f3d0" : "#fca5a5";
+  document.getElementById("btn-prev").disabled = mesIdx===0;
+  document.getElementById("btn-next").disabled = mesIdx===todosOsMeses.length-1;
+  const anoAtual  = parseInt(todosOsMeses[mesIdx].split("-")[0]);
+  document.getElementById("btn-prev-ano").disabled = !todosOsMeses.some(k=>parseInt(k.split("-")[0]) < anoAtual);
+  document.getElementById("btn-next-ano").disabled = !todosOsMeses.some(k=>parseInt(k.split("-")[0]) > anoAtual);
+
+  renderResumo(txs, recs, totalGasto, totalReceita, saldo, prevTotal, k);
+  renderGastos(txs);
+  renderGraficos(txs, recs, totalGasto, totalReceita);
+}
+
+// ── RESUMO ────────────────────────────────────────────────────────────────────
+function renderResumo(txs, recs, totalGasto, totalReceita, saldo, prevTotal, k) {
+  const byCat = {};
+  txs.forEach(t=>{ byCat[t.categoria]=(byCat[t.categoria]||0)+t.valor; });
+  const catArr = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+  const top5   = [...txs].sort((a,b)=>b.valor-a.valor).slice(0,5);
+  const maxRec = recs.length ? Math.max(...recs.map(r=>r.valor)) : 1;
+
+  const saldoPos = saldo >= 0;
+
+  // Card saldo
+  const saldoCard = `
+    <div class="saldo-card ${saldoPos?"pos":"neg"}">
+      <div class="saldo-info">
+        <small>${saldoPos?"✅ Saldo Positivo":"⚠️ Saldo Negativo"}</small>
+        <div class="saldo-val">${fmt(Math.abs(saldo))}</div>
+      </div>
+      <div class="saldo-icon">${saldoPos?"💰":"📉"}</div>
+    </div>`;
+
+  // Receitas card
+  const recCard = recs.length ? `
+    <div class="card">
+      <h2>📈 Receitas por Negócio</h2>
+      ${recs.map(r=>{
+        const pct=(r.valor/totalReceita*100).toFixed(1);
+        const cfg=NEGOCIOS[r.fonte]||{cor:"#6b7280",icone:"💼"};
+        return `<div class="rec-row">
+          <div class="rec-row-top">
+            <span style="color:#374151">${cfg.icone} ${r.fonte}</span>
+            <span style="font-weight:600">${fmt(r.valor)}</span>
+          </div>
+          <div class="rec-bg"><div class="rec-fill" style="width:${pct}%;background:${cfg.cor}"></div></div>
+          <div class="rec-pct">${pct}%</div>
+        </div>`;
+      }).join("")}
+      <div style="border-top:1px solid #f3f4f6;margin-top:8px;padding-top:8px;display:flex;justify-content:space-between;font-size:13px">
+        <span style="color:#6b7280">Total</span>
+        <span style="font-weight:700;color:#16a34a">${fmt(totalReceita)}</span>
+      </div>
+    </div>` : "";
+
+  // Comparação
+  const prev = txMesAnterior();
+  const varHtml = prevTotal != null ? (() => {
+    const diff=totalGasto-prevTotal;
+    const pct=(diff/prevTotal*100).toFixed(1);
+    const cor=diff>0?"#ef4444":"#22c55e";
+    const seta=diff>0?"▲":"▼";
+    return `<div class="compare-diff" style="color:${cor}">${seta} ${fmt(Math.abs(diff))} (${Math.abs(pct)}%) ${diff>0?"a mais":"a menos"} em gastos que ${mesLabel(todosOsMeses[mesIdx-1])}</div>`;
+  })() : `<p style="text-align:center;font-size:11px;color:#9ca3af;margin-top:8px">Adicione dados de outros meses para comparar</p>`;
+
+  const prevBox = prevTotal != null ? `
+    <div class="compare-box prev">
+      <small>${mesLabel(todosOsMeses[mesIdx-1])}</small>
+      <big>${fmt(prevTotal)}</big>
+    </div>` : "";
+
+  document.getElementById("sec-resumo").innerHTML = `
+    ${saldoCard}
+
+    <div class="grid2">
+      <div class="stat-card">
+        <div class="stat-label">Receita Total</div>
+        <div class="stat-val green">${totalReceita?fmt(totalReceita):"—"}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total de Gastos</div>
+        <div class="stat-val red">${totalGasto?fmt(totalGasto):"—"}</div>
+      </div>
+    </div>
+
+    ${recCard}
+
+    <div class="card">
+      <h2>💸 Gastos por Categoria</h2>
+      ${catArr.map(([name,value])=>{
+        const pct=(value/totalGasto*100).toFixed(1);
+        const cor=CATS[name]?.cor||"#6b7280";
+        const ico=CATS[name]?.icone||"📦";
+        return `<div class="bar-row">
+          <div class="bar-row-top"><span>${ico} ${name}</span><span>${fmt(value)}</span></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:${pct}%;background:${cor}"></div></div>
+          <div class="bar-pct">${pct}%</div>
+        </div>`;
+      }).join("")||'<p class="empty">Sem gastos registrados</p>'}
+    </div>
+
+    <div class="card">
+      <h2>🏆 Maiores Gastos</h2>
+      ${top5.map((t,i)=>`
+        <div class="top-item">
+          <div class="top-rank">#${i+1}</div>
+          <div class="top-info"><b>${t.descricao}</b><small>${fmtD(t.data)} · ${t.pagamento}</small></div>
+          <div class="top-val">${fmt(t.valor)}</div>
+        </div>`).join("")||'<p class="empty">Sem dados</p>'}
+    </div>
+
+    <div class="card">
+      <h2>📅 Comparação Mensal (Gastos)</h2>
+      <div class="compare-grid">
+        ${prevBox}
+        <div class="compare-box curr">
+          <small>${mesLabel(k)} ✦</small>
+          <big>${fmt(totalGasto)}</big>
+        </div>
+      </div>
+      ${varHtml}
+    </div>`;
+}
+
+// ── GASTOS ────────────────────────────────────────────────────────────────────
+function renderGastos(txs) {
+  const catsPresentes = [...new Set(txs.map(t=>t.categoria))];
+  const filtradas = txs.filter(t=>
+    (filtroAtivo==="Todas"||t.categoria===filtroAtivo)&&
+    (busca===""||t.descricao.toLowerCase().includes(busca.toLowerCase())||
+     t.estabelecimento.toLowerCase().includes(busca.toLowerCase()))
+  );
+  const grupos = agrupar(filtradas);
+
+  const filterBtns = ["Todas",...catsPresentes].map(cat=>`
+    <button class="filter-btn${cat===filtroAtivo?" active":""}"
+      onclick="setFiltro('${cat}')">${(CATS[cat]?.icone||"")} ${cat}</button>`).join("");
+
+  const gruposHtml = grupos.map(grupo => {
+    const top=grupo[0];
+    const key=top.grupo||("_solo_"+top.id);
+    const multi=grupo.length>1;
+    const isExp=expandidos.has(key);
+    const cor=CATS[top.categoria]?.cor||"#6b7280";
+    const ico=CATS[top.categoria]?.icone||"📦";
+    const totalGrupo=grupo.reduce((s,t)=>s+t.valor,0);
+
+    const cardHtml = t => `
+      <div class="tx-item" style="${t.semComprovante?'border-left:3px solid #f59e0b;':''}">
+        <div class="tx-icon" style="background:${cor}22">${ico}</div>
+        <div class="tx-info">
+          <b>${t.descricao}</b>
+          <small>${t.estabelecimento}</small>
+          <small>${fmtD(t.data)} · ${t.pagamento}${t.semComprovante?' · <span style="color:#d97706;font-weight:600">⚠ sem comprovante</span>':''}</small>
+        </div>
+        <div class="tx-right">
+          <b>${fmt(t.valor)}</b>
+          <span class="badge" style="background:${cor}">${ico} ${t.categoria}</span>
+        </div>
+      </div>`;
+
+    if(!multi) return `<div style="margin-bottom:8px">${cardHtml(top)}</div>`;
+
+    const backs = !isExp ? `
+      <div class="behind b1"></div>
+      ${grupo.length>2?'<div class="behind b2"></div>':''}` : "";
+
+    return `
+      <div class="stack-group" onclick="toggleStack('${key}')">
+        ${backs}
+        <span class="stack-count">${grupo.length}x · ${fmt(totalGrupo)}</span>
+        ${cardHtml(top)}
+        ${isExp ? grupo.slice(1).map(t=>cardHtml(t)).join("") : ""}
+        <div class="expand-hint">${isExp?"▲ Recolher":"▼ Ver todos os "+grupo.length+" lançamentos"}</div>
+      </div>`;
+  }).join("");
+
+  document.getElementById("sec-gastos").innerHTML = `
+    <input class="search" type="text" placeholder="🔍 Buscar..." value="${busca}" oninput="setBusca(this.value)"/>
+    <div class="filter-row">${filterBtns}</div>
+    ${grupos.length?gruposHtml:'<p class="empty">Nenhum gasto encontrado</p>'}`;
+}
+
+// ── GRÁFICOS ──────────────────────────────────────────────────────────────────
+function renderGraficos(txs, recs, totalGasto, totalReceita) {
+  const semDados = !txs.length && !recs.length;
+  if(semDados){
+    document.getElementById("sec-grafico").innerHTML='<p class="empty" style="padding:60px 20px">Sem dados para este mês</p>';
+    return;
+  }
+
+  // Receita vs Gasto
+  const maxRG = Math.max(totalReceita, totalGasto) || 1;
+  const recVsGastoHtml = `
+    <div class="card">
+      <h2>📊 Receita × Gasto</h2>
+      ${[["📈 Receita","#22c55e",totalReceita],["💸 Gastos","#ef4444",totalGasto]].map(([label,cor,val])=>`
+        <div style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px">
+            <span style="color:#374151">${label}</span><span style="font-weight:600;color:${cor}">${fmt(val)}</span>
+          </div>
+          <div style="background:#f3f4f6;border-radius:99px;height:12px">
+            <div style="width:${(val/maxRG*100).toFixed(0)}%;height:12px;border-radius:99px;background:${cor}"></div>
+          </div>
+        </div>`).join("")}
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding-top:8px;border-top:1px solid #f3f4f6">
+        <span style="color:#6b7280">Saldo</span>
+        <span style="font-weight:700;color:${totalReceita>=totalGasto?"#16a34a":"#dc2626"}">${fmt(totalReceita-totalGasto)}</span>
+      </div>
+    </div>`;
+
+  // Pizza gastos
+  let pieSlices="",legItems="",angle=0;
+  const byCat={};
+  txs.forEach(t=>{ byCat[t.categoria]=(byCat[t.categoria]||0)+t.valor; });
+  const catArr=Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+  catArr.forEach(([name,value])=>{
+    const pct=value/totalGasto;
+    const a1=angle*Math.PI*2, a2=(angle+pct)*Math.PI*2;
+    const x1=Math.cos(a1),y1=Math.sin(a1),x2=Math.cos(a2),y2=Math.sin(a2);
+    const large=pct>.5?1:0;
+    const cor=CATS[name]?.cor||"#6b7280";
+    const R=0.9,r=0.45;
+    pieSlices+=`<path d="M${R*x1},${R*y1} A${R},${R} 0 ${large} 1 ${R*x2},${R*y2} L${r*x2},${r*y2} A${r},${r} 0 ${large} 0 ${r*x1},${r*y1} Z" fill="${cor}"/>`;
+    legItems+=`<div class="pie-legend-item"><div class="pie-dot" style="background:${cor}"></div>${CATS[name]?.icone} ${name} (${(pct*100).toFixed(1)}%)</div>`;
+    angle+=pct;
+  });
+
+  // Barras gastos
+  const maxCat=catArr.length?catArr[0][1]:1;
+  const barsHtml=catArr.map(([name,value])=>{
+    const pct=(value/maxCat*100).toFixed(0);
+    const cor=CATS[name]?.cor||"#6b7280";
+    const ico=CATS[name]?.icone||"📦";
+    return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <div style="width:90px;font-size:12px;text-align:right;flex-shrink:0;color:#374151">${ico} ${name}</div>
+      <div style="flex:1;background:#f3f4f6;border-radius:99px;height:24px">
+        <div style="width:${pct}%;min-width:1%;height:100%;border-radius:99px;background:${cor};display:flex;align-items:center;justify-content:flex-end;padding-right:8px">
+          <span style="font-size:11px;color:white;font-weight:600">${fmt(value)}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+
+  // Área por dia
+  const byDay={};
+  txs.forEach(t=>{ const d=fmtD(t.data); byDay[d]=(byDay[d]||0)+t.valor; });
+  const days=Object.entries(byDay);
+  let areaSvg="";
+  if(days.length){
+    const W=460,H=140,pl=50,pr=20,pt=20,pb=30;
+    const maxDay=Math.max(...days.map(d=>d[1]));
+    const pts=days.map(([d,v],i)=>({
+      x:pl+(i/(Math.max(days.length-1,1)))*(W-pl-pr),
+      y:pt+(1-v/maxDay)*(H-pt-pb), d, v
+    }));
+    const aPath=pts.map((p,i)=>i===0?`M${p.x},${p.y}`:`L${p.x},${p.y}`).join(" ")
+      +` L${pts[pts.length-1].x},${H-pb} L${pts[0].x},${H-pb} Z`;
+    areaSvg=`<div class="card"><h2>Gastos por Dia</h2><div class="chart-wrap">
+      <svg width="${W}" height="${H}" style="display:block">
+        <defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#7c3aed" stop-opacity=".3"/>
+          <stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/>
+        </linearGradient></defs>
+        <path d="${aPath}" fill="url(#ag)"/>
+        <polyline points="${pts.map(p=>`${p.x},${p.y}`).join(" ")}" fill="none" stroke="#7c3aed" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+        ${pts.map(p=>`<circle cx="${p.x}" cy="${p.y}" r="4" fill="#7c3aed"/>`).join("")}
+        ${pts.map(p=>`<text x="${p.x}" y="${H-8}" text-anchor="middle" font-size="11" fill="#9ca3af">${p.d}</text>`).join("")}
+        ${pts.map(p=>`<text x="${p.x}" y="${p.y-10}" text-anchor="middle" font-size="10" fill="#7c3aed" font-weight="600">R$${p.v.toFixed(0)}</text>`).join("")}
+        <line x1="${pl}" y1="${pt}" x2="${pl}" y2="${H-pb}" stroke="#e5e7eb"/>
+        <line x1="${pl}" y1="${H-pb}" x2="${W-pr}" y2="${H-pb}" stroke="#e5e7eb"/>
+      </svg>
+    </div></div>`;
+  }
+
+  document.getElementById("sec-grafico").innerHTML = `
+    ${recVsGastoHtml}
+    ${catArr.length?`
+    <div class="card">
+      <h2>Distribuição dos Gastos</h2>
+      <div style="display:flex;justify-content:center">
+        <svg width="200" height="200" viewBox="-1 -1 2 2" style="transform:rotate(-90deg)">${pieSlices}</svg>
+      </div>
+      <div class="pie-legend">${legItems}</div>
+    </div>
+    <div class="card"><h2>Gastos por Categoria</h2>${barsHtml}</div>`:""}
+    ${areaSvg}`;
+}
+
+// ── INTERAÇÕES ────────────────────────────────────────────────────────────────
+function setFiltro(cat){ filtroAtivo=cat; renderGastos(txDoMes(mesAtual())); }
+function setBusca(v)   { busca=v;        renderGastos(txDoMes(mesAtual())); }
+function toggleStack(key){
+  if(expandidos.has(key)) expandidos.delete(key); else expandidos.add(key);
+  renderGastos(txDoMes(mesAtual()));
+}
+function showAba(id,btn){
+  document.querySelectorAll(".section").forEach(s=>s.classList.remove("visible"));
+  document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
+  document.getElementById("sec-"+id).classList.add("visible");
+  btn.classList.add("active");
+}
+
+render();
+</script>
+</body>
+</html>
