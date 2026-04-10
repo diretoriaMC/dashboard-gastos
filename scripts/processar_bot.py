@@ -183,11 +183,47 @@ def adicionar_transacao(tx):
     return next_id
 
 
+# ── Verificação de saldo da Anthropic ─────────────────────────────────────────
+SALDO_MINIMO_USD = 2.00  # Avisa quando saldo ficar abaixo de $2
+
+def verificar_saldo():
+    """Consulta o saldo da API Anthropic e avisa se estiver baixo."""
+    try:
+        r = requests.get(
+            "https://api.anthropic.com/v1/organizations/me/usage",
+            headers={"x-api-key": ANTHROPIC_KEY, "anthropic-version": "2023-06-01"},
+            timeout=10
+        )
+        # Tenta endpoint de billing
+        r2 = requests.get(
+            "https://api.anthropic.com/v1/billing/credit_balance",
+            headers={"x-api-key": ANTHROPIC_KEY, "anthropic-version": "2023-06-01"},
+            timeout=10
+        )
+        if r2.status_code == 200:
+            data = r2.json()
+            saldo = data.get("available_credit", data.get("balance", None))
+            if saldo is not None:
+                saldo_usd = float(saldo) / 100  # centavos → dólares
+                if saldo_usd < SALDO_MINIMO_USD:
+                    send_message(
+                        f"⚠️ *Saldo baixo na API Anthropic!*\n\n"
+                        f"Saldo atual: *${saldo_usd:.2f}*\n"
+                        f"Quando acabar, o bot para de processar comprovantes.\n\n"
+                        f"Adicione créditos em:\nhttps://console.anthropic.com/settings/billing"
+                    )
+                    print(f"Aviso de saldo baixo enviado: ${saldo_usd:.2f}")
+                else:
+                    print(f"Saldo OK: ${saldo_usd:.2f}")
+    except Exception as e:
+        print(f"Não foi possível verificar saldo: {e}")
+
+
 # ── Estado: controla offset do Telegram ───────────────────────────────────────
 def ler_estado():
     if ESTADO_FILE.exists():
         return json.loads(ESTADO_FILE.read_text())
-    return {"offset": 0}
+    return {"offset": 0, "ultima_verificacao_saldo": ""}
 
 def salvar_estado(estado):
     ESTADO_FILE.write_text(json.dumps(estado, indent=2))
@@ -197,6 +233,12 @@ def salvar_estado(estado):
 def main():
     estado = ler_estado()
     offset = estado.get("offset", 0)
+
+    # Verifica saldo uma vez por dia
+    hoje = datetime.now().strftime("%Y-%m-%d")
+    if estado.get("ultima_verificacao_saldo") != hoje:
+        verificar_saldo()
+        estado["ultima_verificacao_saldo"] = hoje
 
     updates = get_updates(offset)
     if not updates:
