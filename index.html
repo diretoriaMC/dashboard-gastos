@@ -433,6 +433,7 @@ const todosOsMeses = [...new Set([
 let mesIdx = todosOsMeses.indexOf(MES_HOJE);
 let filtroAtivo = "Todas";
 let busca = "";
+let viewMode = "categoria"; // "categoria" ou "cronologico"
 const expandidos = new Set();
 
 // ── NAVEGAÇÃO ─────────────────────────────────────────────────────────────────
@@ -635,22 +636,11 @@ function renderGastos(txs) {
     (busca===""||t.descricao.toLowerCase().includes(busca.toLowerCase())||
      t.estabelecimento.toLowerCase().includes(busca.toLowerCase()))
   );
-  const grupos = agrupar(filtradas);
 
-  const filterBtns = ["Todas",...catsPresentes].map(cat=>`
-    <button class="filter-btn${cat===filtroAtivo?" active":""}"
-      onclick="setFiltro('${cat}')">${(CATS[cat]?.icone||"")} ${cat}</button>`).join("");
-
-  const gruposHtml = grupos.map(grupo => {
-    const top=grupo[0];
-    const key=top.grupo||("_solo_"+top.id);
-    const multi=grupo.length>1;
-    const isExp=expandidos.has(key);
-    const cor=CATS[top.categoria]?.cor||"#6b7280";
-    const ico=CATS[top.categoria]?.icone||"📦";
-    const totalGrupo=grupo.reduce((s,t)=>s+t.valor,0);
-
-    const cardHtml = t => `
+  const cardHtml = t => {
+    const cor=CATS[t.categoria]?.cor||"#6b7280";
+    const ico=CATS[t.categoria]?.icone||"📦";
+    return `
       <div class="tx-item" style="${t.semComprovante?'border-left:3px solid #f59e0b;':''}">
         <div class="tx-icon" style="background:${cor}22">${ico}</div>
         <div class="tx-info">
@@ -663,27 +653,101 @@ function renderGastos(txs) {
           <span class="badge" style="background:${cor}">${ico} ${t.categoria}</span>
         </div>
       </div>`;
+  };
 
-    if(!multi) return `<div style="margin-bottom:8px">${cardHtml(top)}</div>`;
+  const filterBtns = ["Todas",...catsPresentes].map(cat=>`
+    <button class="filter-btn${cat===filtroAtivo?" active":""}"
+      onclick="setFiltro('${cat}')">${(CATS[cat]?.icone||"")} ${cat}</button>`).join("");
 
-    const backs = !isExp ? `
-      <div class="behind b1"></div>
-      ${grupo.length>2?'<div class="behind b2"></div>':''}` : "";
+  const toggleView = `
+    <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
+      <span style="font-size:13px;color:#6b7280;font-weight:500">Visualizar:</span>
+      <button onclick="setViewMode('categoria')" style="
+        padding:5px 14px;border-radius:20px;border:none;cursor:pointer;font-size:13px;font-weight:600;
+        background:${viewMode==='categoria'?'#6366f1':'#f1f5f9'};
+        color:${viewMode==='categoria'?'#fff':'#64748b'};transition:all .2s">
+        📂 Por categoria
+      </button>
+      <button onclick="setViewMode('cronologico')" style="
+        padding:5px 14px;border-radius:20px;border:none;cursor:pointer;font-size:13px;font-weight:600;
+        background:${viewMode==='cronologico'?'#6366f1':'#f1f5f9'};
+        color:${viewMode==='cronologico'?'#fff':'#64748b'};transition:all .2s">
+        📅 Cronológico
+      </button>
+    </div>`;
 
-    return `
-      <div class="stack-group" onclick="toggleStack('${key}')">
-        ${backs}
-        <span class="stack-count">${grupo.length}x · ${fmt(totalGrupo)}</span>
-        ${cardHtml(top)}
-        ${isExp ? grupo.slice(1).map(t=>cardHtml(t)).join("") : ""}
-        <div class="expand-hint">${isExp?"▲ Recolher":"▼ Ver todos os "+grupo.length+" lançamentos"}</div>
-      </div>`;
-  }).join("");
+  let conteudoHtml = '';
+
+  if (viewMode === 'cronologico') {
+    // Agrupa por dia, ordena do mais recente ao mais antigo
+    const porDia = {};
+    [...filtradas].sort((a,b)=>b.data.localeCompare(a.data)).forEach(t => {
+      const dia = t.data;
+      if (!porDia[dia]) porDia[dia] = [];
+      porDia[dia].push(t);
+    });
+
+    if (!Object.keys(porDia).length) {
+      conteudoHtml = '<p class="empty">Nenhum gasto encontrado</p>';
+    } else {
+      conteudoHtml = Object.entries(porDia).map(([dia, items]) => {
+        const totalDia = items.reduce((s,t)=>s+t.valor, 0);
+        // Formata o dia com nome do dia da semana
+        const d = new Date(dia + 'T12:00:00');
+        const nomeDia = d.toLocaleDateString('pt-BR', {weekday:'long'});
+        const diaCurto = fmtD(dia);
+        return `
+          <div style="margin-bottom:18px">
+            <div style="display:flex;justify-content:space-between;align-items:center;
+              padding:6px 12px;background:#f8fafc;border-radius:10px;margin-bottom:8px;
+              border-left:4px solid #6366f1">
+              <div>
+                <span style="font-weight:700;color:#1e293b;font-size:14px">${diaCurto}</span>
+                <span style="color:#94a3b8;font-size:12px;margin-left:8px;text-transform:capitalize">${nomeDia}</span>
+              </div>
+              <span style="font-weight:700;color:#6366f1;font-size:14px">${fmt(totalDia)}</span>
+            </div>
+            ${items.map(t => cardHtml(t)).join('')}
+          </div>`;
+      }).join('');
+    }
+  } else {
+    // Modo por categoria (comportamento original com agrupamento/stacks)
+    const grupos = agrupar(filtradas);
+    if (!grupos.length) {
+      conteudoHtml = '<p class="empty">Nenhum gasto encontrado</p>';
+    } else {
+      conteudoHtml = grupos.map(grupo => {
+        const top=grupo[0];
+        const key=top.grupo||("_solo_"+top.id);
+        const multi=grupo.length>1;
+        const isExp=expandidos.has(key);
+        const cor=CATS[top.categoria]?.cor||"#6b7280";
+        const totalGrupo=grupo.reduce((s,t)=>s+t.valor,0);
+
+        if(!multi) return `<div style="margin-bottom:8px">${cardHtml(top)}</div>`;
+
+        const backs = !isExp ? `
+          <div class="behind b1"></div>
+          ${grupo.length>2?'<div class="behind b2"></div>':''}` : "";
+
+        return `
+          <div class="stack-group" onclick="toggleStack('${key}')">
+            ${backs}
+            <span class="stack-count">${grupo.length}x · ${fmt(totalGrupo)}</span>
+            ${cardHtml(top)}
+            ${isExp ? grupo.slice(1).map(t=>cardHtml(t)).join("") : ""}
+            <div class="expand-hint">${isExp?"▲ Recolher":"▼ Ver todos os "+grupo.length+" lançamentos"}</div>
+          </div>`;
+      }).join("");
+    }
+  }
 
   document.getElementById("sec-gastos").innerHTML = `
     <input class="search" type="text" placeholder="🔍 Buscar..." value="${busca}" oninput="setBusca(this.value)"/>
+    ${toggleView}
     <div class="filter-row">${filterBtns}</div>
-    ${grupos.length?gruposHtml:'<p class="empty">Nenhum gasto encontrado</p>'}`;
+    ${conteudoHtml}`;
 }
 
 // ── GRÁFICOS ──────────────────────────────────────────────────────────────────
@@ -793,8 +857,9 @@ function renderGraficos(txs, recs, totalGasto, totalReceita) {
 }
 
 // ── INTERAÇÕES ────────────────────────────────────────────────────────────────
-function setFiltro(cat){ filtroAtivo=cat; renderGastos(txDoMes(mesAtual())); }
-function setBusca(v)   { busca=v;        renderGastos(txDoMes(mesAtual())); }
+function setFiltro(cat)    { filtroAtivo=cat;  renderGastos(txDoMes(mesAtual())); }
+function setBusca(v)       { busca=v;         renderGastos(txDoMes(mesAtual())); }
+function setViewMode(mode) { viewMode=mode;   renderGastos(txDoMes(mesAtual())); }
 function toggleStack(key){
   if(expandidos.has(key)) expandidos.delete(key); else expandidos.add(key);
   renderGastos(txDoMes(mesAtual()));
