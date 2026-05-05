@@ -47,7 +47,7 @@ jobs:
         run: |
           git config user.name "Bot Gastos"
           git config user.email "bot@gastos"
-          git add index.html estado_bot.json
+          git add index.html estado_bot.json contas_fixas.json
           if git diff --staged --quiet; then
             echo "Nenhuma mudança para commitar"
           else
