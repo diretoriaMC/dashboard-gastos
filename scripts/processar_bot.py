@@ -12,7 +12,8 @@ import base64
 import requests
 import tempfile
 import io
-from datetime import datetime
+import calendar
+from datetime import datetime, date, timedelta
 from pathlib import Path
 
 # ── Configurações ─────────────────────────────────────────────────────────────
@@ -22,6 +23,7 @@ ANTHROPIC_KEY    = os.environ["ANTHROPIC_API_KEY"]
 REPO_DIR         = Path(__file__).parent.parent
 DASHBOARD_FILE   = REPO_DIR / "index.html"
 ESTADO_FILE      = REPO_DIR / "estado_bot.json"
+CONTAS_FILE      = REPO_DIR / "contas_fixas.json"
 
 TELEGRAM_API = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}"
 
@@ -84,7 +86,7 @@ def extrair_texto(file_bytes, file_path):
 
 
 # ── Claude: extrai dados do comprovante ───────────────────────────────────────
-def extrair_dados_com_ia(texto, file_bytes=None, file_path=""):
+def extrair_dados_com_ia(texto, file_bytes=None, file_path="", contexto=""):
     """Usa Claude para extrair dados estruturados do comprovante."""
     import anthropic
     client = anthropic.Anthropic(api_key=ANTHROPIC_KEY)
@@ -98,10 +100,13 @@ def extrair_dados_com_ia(texto, file_bytes=None, file_path=""):
         media = "image/jpeg" if ext in (".jpg", ".jpeg") else "image/png"
         content.append({"type": "image", "source": {"type": "base64", "media_type": media, "data": b64}})
 
+    contexto_extra = f"\n\nO usuário informou que se trata de: {contexto}" if contexto else ""
+
     prompt = f"""Você é um assistente que extrai dados de comprovantes de pagamento brasileiros.
 
 {"Texto extraído por OCR:" if texto.strip() else "Analise a imagem do comprovante."}
 {texto if texto.strip() else ""}
+{contexto_extra}
 
 Data de hoje: {hoje}
 
@@ -113,7 +118,8 @@ Extraia os dados e responda APENAS com um JSON válido nesse formato:
   "descricao": "Descrição curta do gasto",
   "categoria": "Categoria",
   "pagamento": "Pix|Boleto|Débito|Crédito|Dinheiro",
-  "grupo": "kebab-case-para-agrupar-recorrentes"
+  "grupo": "kebab-case-para-agrupar-recorrentes",
+  "precisa_confirmacao": false
 }}
 
 Categorias disponíveis: Alimentação, Restaurante, Saúde, Moradia, Transporte, Serviços, Beleza, Vestuário, Compras Online, Assinaturas, Educação, Viagem, Casa, Doações, Impostos, Outros
@@ -123,6 +129,7 @@ Regras:
 - valor deve ser número (ex: 45.90, não "R$ 45,90")
 - grupo em kebab-case, apenas para estabelecimentos recorrentes (ex: "supermercado-soberano")
 - Se for compra no cartão de crédito, pagamento = "Cartão"
+- Se o estabelecimento for nome de pessoa física sem descrição clara, ou se não conseguir identificar a categoria com segurança, coloque precisa_confirmacao: true
 - Responda SOMENTE o JSON, sem texto antes ou depois"""
 
     content.append({"type": "text", "text": prompt})
@@ -411,6 +418,194 @@ def eh_despesa_sem_nota(texto):
     return any(p in t for p in ["sem nota", "sem comprovante", "despesa sem", "gasto sem"])
 
 
+# ── Contas fixas: persistência ────────────────────────────────────────────────
+def ler_contas():
+    if CONTAS_FILE.exists():
+        return json.loads(CONTAS_FILE.read_text(encoding="utf-8"))
+    return {"contas": []}
+
+def salvar_contas(dados):
+    CONTAS_FILE.write_text(json.dumps(dados, indent=2, ensure_ascii=False), encoding="utf-8")
+
+
+# ── Contas fixas: data de vencimento ──────────────────────────────────────────
+def proxima_data_vencimento(dia_venc):
+    hoje = date.today()
+    ultimo_dia = calendar.monthrange(hoje.year, hoje.month)[1]
+    dia_real = min(dia_venc, ultimo_dia)
+    venc_este_mes = date(hoje.year, hoje.month, dia_real)
+    if venc_este_mes >= hoje:
+        return venc_este_mes
+    # Próximo mês
+    if hoje.month == 12:
+        prox = date(hoje.year + 1, 1, 1)
+    else:
+        prox = date(hoje.year, hoje.month + 1, 1)
+    ultimo_dia_prox = calendar.monthrange(prox.year, prox.month)[1]
+    return date(prox.year, prox.month, min(dia_venc, ultimo_dia_prox))
+
+
+# ── Contas fixas: lembretes diários ───────────────────────────────────────────
+def verificar_lembretes():
+    dados = ler_contas()
+    contas = dados.get("contas", [])
+    hoje = date.today()
+    hoje_str = hoje.strftime("%Y-%m-%d")
+    modificado = False
+
+    for conta in contas:
+        prox_venc  = proxima_data_vencimento(conta["dia_vencimento"])
+        mes_venc   = prox_venc.strftime("%Y-%m")
+        dias_falta = (prox_venc - hoje).days
+
+        if conta.get("pago_mes") == mes_venc:
+            continue
+        if dias_falta > 1:
+            continue
+        if conta.get("ultimo_lembrete") == hoje_str:
+            continue
+
+        valor_fmt = f"R$ {conta['valor']:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        if dias_falta == 1:
+            urgencia = f"vence *amanhã* ({prox_venc.strftime('%d/%m')})"
+        elif dias_falta == 0:
+            urgencia = f"vence *hoje* ({prox_venc.strftime('%d/%m')})"
+        else:
+            urgencia = f"venceu em {prox_venc.strftime('%d/%m')} — *em atraso!*"
+
+        send_message(
+            f"🔔 *Lembrete de conta*\n\n"
+            f"📋 {conta['descricao']}\n"
+            f"💰 {valor_fmt}\n"
+            f"📅 {urgencia}\n\n"
+            f"Quando pagar, me diga:\n`paguei {conta['descricao']}`"
+        )
+
+        conta["ultimo_lembrete"] = hoje_str
+        modificado = True
+
+    if modificado:
+        salvar_contas(dados)
+
+
+# ── Contas fixas: Claude parseia texto livre ───────────────────────────────────
+def extrair_conta_fixa_com_ia(texto_msg):
+    import anthropic
+    client = anthropic.Anthropic(api_key=ANTHROPIC_KEY)
+
+    prompt = f"""O usuário quer cadastrar uma conta fixa mensal.
+
+Mensagem: "{texto_msg}"
+
+Extraia os dados e responda APENAS com JSON válido:
+{{
+  "descricao": "Nome da conta",
+  "dia_vencimento": 15,
+  "valor": 250.00
+}}
+
+Regras:
+- dia_vencimento é o dia do mês (1 a 31)
+- valor deve ser número (ex: 250.00)
+- descricao deve ser curta e clara
+- Responda SOMENTE o JSON"""
+
+    resp = client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=256,
+        messages=[{"role": "user", "content": prompt}]
+    )
+    raw = re.sub(r"^```json\s*", "", resp.content[0].text.strip())
+    raw = re.sub(r"\s*```$", "", raw)
+    return json.loads(raw)
+
+
+def identificar_conta_paga_com_ia(texto_msg, contas):
+    import anthropic
+    client = anthropic.Anthropic(api_key=ANTHROPIC_KEY)
+
+    lista = "\n".join(f"- {c['descricao']}" for c in contas)
+    prompt = f"""O usuário disse que pagou uma conta. Identifique qual conta da lista ele se refere.
+
+Mensagem: "{texto_msg}"
+
+Contas cadastradas:
+{lista}
+
+Responda APENAS com o nome exato da conta (copiado da lista acima), ou "nenhuma" se não identificar."""
+
+    resp = client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=64,
+        messages=[{"role": "user", "content": prompt}]
+    )
+    return resp.content[0].text.strip()
+
+
+# ── Contas fixas: ações ────────────────────────────────────────────────────────
+def adicionar_conta_fixa(nova_conta):
+    dados = ler_contas()
+    ids = [c["id"] for c in dados["contas"]] or [0]
+    nova_conta["id"] = max(ids) + 1
+    nova_conta["pago_mes"] = None
+    nova_conta["ultimo_lembrete"] = None
+    dados["contas"].append(nova_conta)
+    salvar_contas(dados)
+
+def marcar_conta_paga(descricao_exata):
+    dados = ler_contas()
+    hoje = date.today()
+    for conta in dados["contas"]:
+        if conta["descricao"] == descricao_exata:
+            prox_venc = proxima_data_vencimento(conta["dia_vencimento"])
+            conta["pago_mes"] = prox_venc.strftime("%Y-%m")
+            salvar_contas(dados)
+            return True
+    return False
+
+def listar_contas_texto():
+    dados = ler_contas()
+    contas = dados.get("contas", [])
+    if not contas:
+        return "Nenhuma conta fixa cadastrada.\n\nPara cadastrar: `conta fixa: Nome, dia X, R$ valor`"
+
+    hoje = date.today()
+    linhas = []
+    for c in contas:
+        prox_venc = proxima_data_vencimento(c["dia_vencimento"])
+        mes_venc  = prox_venc.strftime("%Y-%m")
+        valor_fmt = f"R$ {c['valor']:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        if c.get("pago_mes") == mes_venc:
+            status = "✅ paga"
+        else:
+            dias = (prox_venc - hoje).days
+            if dias < 0:
+                status = f"⚠️ em atraso ({prox_venc.strftime('%d/%m')})"
+            elif dias == 0:
+                status = f"🔴 vence hoje"
+            elif dias == 1:
+                status = f"🟡 vence amanhã"
+            else:
+                status = f"🔵 vence dia {c['dia_vencimento']}"
+        linhas.append(f"• *{c['descricao']}* — {valor_fmt} — {status}")
+
+    return "📋 *Suas contas fixas:*\n\n" + "\n".join(linhas)
+
+
+# ── Detectores de intenção para contas fixas ──────────────────────────────────
+def eh_conta_fixa(texto):
+    t = texto.lower()
+    return any(p in t for p in ["conta fixa", "despesa fixa", "conta mensal", "despesa mensal", "lembrar de pagar", "me lembra"])
+
+def eh_marcar_pago(texto):
+    t = texto.lower()
+    return any(p in t for p in ["paguei", "já paguei", "ja paguei", "marcar como pago", "marquei como pago", "foi pago"])
+
+def eh_listar_contas(texto):
+    t = texto.lower()
+    return any(p in t for p in ["ver contas", "listar contas", "minhas contas", "quais contas", "contas fixas"])
+
+
 # ── Verificação de saldo da Anthropic ─────────────────────────────────────────
 SALDO_MINIMO_USD = 2.00
 
@@ -460,6 +655,8 @@ def main():
         verificar_saldo()
         estado["ultima_verificacao_saldo"] = hoje
 
+    verificar_lembretes()
+
     updates = get_updates(offset)
     if not updates:
         print("Nenhuma mensagem nova.")
@@ -492,18 +689,94 @@ def main():
         if not file_id:
             texto_msg = msg.get("text", "").strip()
 
+            # Comprovante pendente aguardando contexto do usuário
+            if estado.get("aguardando_contexto") and texto_msg and texto_msg.lower() not in ("/start", "/ajuda", "/help"):
+                pendente = estado["aguardando_contexto"]
+                try:
+                    send_message("⏳ Processando com o contexto informado...")
+                    tx = extrair_dados_com_ia(
+                        pendente["texto_comprovante"],
+                        contexto=texto_msg
+                    )
+                    tx_id = adicionar_transacao(tx)
+                    houve_atualizacao = True
+                    estado["aguardando_contexto"] = None
+                    valor_fmt = f"R$ {tx['valor']:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+                    send_message(
+                        f"✅ *Comprovante registrado!*\n\n"
+                        f"📅 Data: {tx['data']}\n"
+                        f"🏪 {tx['estabelecimento']}\n"
+                        f"💰 {valor_fmt}\n"
+                        f"🏷 {tx['categoria']} · {tx['pagamento']}\n\n"
+                        f"Dashboard atualizado em instantes:\n"
+                        f"https://diretoriamc.github.io/dashboard-gastos/"
+                    )
+                except Exception as e:
+                    send_message(f"❌ Erro ao processar com contexto: {str(e)}")
+                continue
+
             # Comandos de ajuda
             if texto_msg.lower() in ("/start", "/ajuda", "/help"):
                 send_message(
                     "👋 *Bot de Gastos*\n\n"
                     "📎 *Comprovante:* mande a foto ou PDF\n"
-                    "🗂 *Fatura do cartão:* mande o PDF da fatura — todas as compras são registradas automaticamente no mês da fatura\n\n"
-                    "💰 *Receita:* escreva algo como:\n"
+                    "🗂 *Fatura do cartão:* mande o PDF da fatura\n\n"
+                    "💰 *Receita:*\n"
                     "`receita em maio: 35.000 na lavanderia, 25.000 na pousada`\n\n"
-                    "🧾 *Despesa sem nota:* escreva algo como:\n"
+                    "🧾 *Despesa sem nota:*\n"
                     "`despesa sem nota em maio: 1.000 em 20/05 - descrição`\n\n"
+                    "🔔 *Cadastrar conta fixa:*\n"
+                    "`conta fixa: Neo Energia, dia 15, R$ 250`\n\n"
+                    "✅ *Marcar conta como paga:*\n"
+                    "`paguei Neo Energia`\n\n"
+                    "📋 *Ver contas fixas:*\n"
+                    "`ver contas`\n\n"
                     "Dashboard: https://diretoriamc.github.io/dashboard-gastos/"
                 )
+                continue
+
+            # Conta fixa — cadastrar
+            if eh_conta_fixa(texto_msg):
+                try:
+                    nova = extrair_conta_fixa_com_ia(texto_msg)
+                    adicionar_conta_fixa(nova)
+                    valor_fmt = f"R$ {nova['valor']:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+                    send_message(
+                        f"✅ *Conta fixa cadastrada!*\n\n"
+                        f"📋 {nova['descricao']}\n"
+                        f"💰 {valor_fmt}\n"
+                        f"📅 Vence todo dia {nova['dia_vencimento']}\n\n"
+                        f"Vou te lembrar no dia anterior ao vencimento."
+                    )
+                except Exception as e:
+                    send_message(f"❌ Erro ao cadastrar conta: {str(e)}")
+                continue
+
+            # Conta fixa — marcar como paga
+            if eh_marcar_pago(texto_msg):
+                try:
+                    dados = ler_contas()
+                    contas = dados.get("contas", [])
+                    if not contas:
+                        send_message("Você não tem contas fixas cadastradas.")
+                    else:
+                        nome = identificar_conta_paga_com_ia(texto_msg, contas)
+                        if nome == "nenhuma":
+                            send_message(
+                                "Não identifiquei qual conta foi paga. "
+                                "Tente ser mais específico, ex: `paguei Neo Energia`"
+                            )
+                        elif marcar_conta_paga(nome):
+                            send_message(f"✅ *{nome}* marcada como paga! Não vou mais lembrar até o próximo mês.")
+                        else:
+                            send_message(f"Não encontrei a conta *{nome}* na lista.")
+                except Exception as e:
+                    send_message(f"❌ Erro: {str(e)}")
+                continue
+
+            # Conta fixa — listar
+            if eh_listar_contas(texto_msg):
+                send_message(listar_contas_texto())
                 continue
 
             # Receita
@@ -553,16 +826,28 @@ def main():
             # Mensagem de texto não reconhecida
             if texto_msg:
                 send_message(
-                    "Não entendi. Você pode:\n\n"
-                    "📎 Mandar a *foto ou PDF* do comprovante\n"
-                    "💰 Escrever `receita em [mês]: valor na [fonte]`\n"
-                    "🧾 Escrever `despesa sem nota em [mês]: valor em [data]`\n\n"
-                    "Digite /ajuda para ver exemplos."
+                    "Não entendi. Digite /ajuda para ver tudo que sei fazer."
                 )
             continue
 
         # ── Processar comprovante ou fatura (foto ou PDF) ────────────────────
         try:
+            if estado.get("aguardando_contexto"):
+                pendente = estado["aguardando_contexto"]
+                tx_pendente = pendente.get("dados_parciais", {})
+                if tx_pendente:
+                    tx_pendente["categoria"] = "Outros"
+                    tx_pendente.pop("precisa_confirmacao", None)
+                    adicionar_transacao(tx_pendente)
+                    houve_atualizacao = True
+                    valor_fmt = f"R$ {tx_pendente['valor']:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+                    send_message(
+                        f"⚠️ Comprovante anterior registrado como *Outros* (sem classificação):\n"
+                        f"{tx_pendente['estabelecimento']} · {valor_fmt}\n\n"
+                        f"Processando novo comprovante..."
+                    )
+                estado["aguardando_contexto"] = None
+
             file_bytes, real_path = download_file(file_id)
             file_path_hint = real_path or file_path_hint
             texto = extrair_texto(file_bytes, file_path_hint)
@@ -592,19 +877,30 @@ def main():
             else:
                 send_message("⏳ Processando comprovante...")
                 tx = extrair_dados_com_ia(texto, file_bytes, file_path_hint)
-                tx_id = adicionar_transacao(tx)
-                houve_atualizacao = True
 
-                valor_fmt = f"R$ {tx['valor']:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-                send_message(
-                    f"✅ *Comprovante registrado!*\n\n"
-                    f"📅 Data: {tx['data']}\n"
-                    f"🏪 {tx['estabelecimento']}\n"
-                    f"💰 {valor_fmt}\n"
-                    f"🏷 {tx['categoria']} · {tx['pagamento']}\n\n"
-                    f"Dashboard atualizado em instantes:\n"
-                    f"https://diretoriamc.github.io/dashboard-gastos/"
-                )
+                if tx.pop("precisa_confirmacao", False):
+                    estado["aguardando_contexto"] = {"texto_comprovante": texto, "dados_parciais": tx}
+                    valor_fmt = f"R$ {tx['valor']:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+                    send_message(
+                        f"🤔 *Não identifiquei bem esse comprovante*\n\n"
+                        f"Valor: {valor_fmt} · {tx['data']}\n"
+                        f"Beneficiário: {tx['estabelecimento']}\n\n"
+                        f"Do que se trata essa despesa? Me responda com uma descrição, ex:\n"
+                        f"_almoço de trabalho_, _médico particular_, _material de limpeza_..."
+                    )
+                else:
+                    tx_id = adicionar_transacao(tx)
+                    houve_atualizacao = True
+                    valor_fmt = f"R$ {tx['valor']:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+                    send_message(
+                        f"✅ *Comprovante registrado!*\n\n"
+                        f"📅 Data: {tx['data']}\n"
+                        f"🏪 {tx['estabelecimento']}\n"
+                        f"💰 {valor_fmt}\n"
+                        f"🏷 {tx['categoria']} · {tx['pagamento']}\n\n"
+                        f"Dashboard atualizado em instantes:\n"
+                        f"https://diretoriamc.github.io/dashboard-gastos/"
+                    )
 
         except Exception as e:
             send_message(f"❌ Erro ao processar arquivo: {str(e)}")
