@@ -180,6 +180,103 @@ Regras:
     return json.loads(raw)
 
 
+# ── Claude: detecta e extrai fatura de cartão ────────────────────────────────
+def eh_fatura(texto):
+    t = texto.lower()
+    palavras = ["fatura", "cartão de crédito", "cartao de credito", "extrato", "vencimento", "limite disponível"]
+    return sum(1 for p in palavras if p in t) >= 2
+
+def extrair_fatura_com_ia(texto, file_bytes=None, file_path=""):
+    """Usa Claude para extrair todas as transações de uma fatura de cartão."""
+    import anthropic
+    client = anthropic.Anthropic(api_key=ANTHROPIC_KEY)
+
+    ext = Path(file_path).suffix.lower() if file_path else ""
+    content = []
+    if ext in (".jpg", ".jpeg", ".png", ".webp") and file_bytes:
+        b64 = base64.standard_b64encode(file_bytes).decode()
+        media = "image/jpeg" if ext in (".jpg", ".jpeg") else "image/png"
+        content.append({"type": "image", "source": {"type": "base64", "media_type": media, "data": b64}})
+
+    prompt = f"""Você é um assistente que extrai dados de faturas de cartão de crédito brasileiras.
+
+Texto da fatura:
+{texto}
+
+Extraia o mês de referência da fatura e TODAS as transações/compras listadas.
+Responda APENAS com um JSON válido nesse formato:
+{{
+  "mes_fatura": "AAAA-MM",
+  "transacoes": [
+    {{
+      "valor": 0.00,
+      "estabelecimento": "Nome do estabelecimento",
+      "descricao": "Descrição curta",
+      "categoria": "Categoria",
+      "grupo": "kebab-case-opcional"
+    }},
+    ...
+  ]
+}}
+
+Categorias disponíveis: Alimentação, Restaurante, Saúde, Moradia, Transporte, Serviços, Beleza, Vestuário, Compras Online, Assinaturas, Educação, Viagem, Casa, Doações, Impostos, Outros
+
+Regras:
+- valor deve ser número positivo (ex: 45.90)
+- Ignore lançamentos de pagamento da fatura anterior, IOF sobre parcelamentos já registrados, e ajustes internos do cartão
+- Inclua todas as compras, incluindo parcelas (ex: "Compra 2/6" é uma parcela válida)
+- grupo em kebab-case apenas para estabelecimentos recorrentes
+- mes_fatura é o mês a que se referem os gastos (ex: fatura de abril = "2026-04")
+- Responda SOMENTE o JSON, sem texto antes ou depois"""
+
+    content.append({"type": "text", "text": prompt})
+
+    resp = client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=4096,
+        messages=[{"role": "user", "content": content}]
+    )
+
+    raw = resp.content[0].text.strip()
+    raw = re.sub(r"^```json\s*", "", raw)
+    raw = re.sub(r"\s*```$", "", raw)
+    return json.loads(raw)
+
+def adicionar_multiplas_transacoes(transacoes, mes_fatura):
+    """Adiciona várias transações de uma vez ao dashboard, todas com data do mês da fatura."""
+    with open(DASHBOARD_FILE, "r", encoding="utf-8") as f:
+        html = f.read()
+
+    ids = re.findall(r'\{ id:(\d+),', html)
+    next_id = max(int(i) for i in ids) + 1 if ids else 1
+
+    novas_linhas = []
+    for tx in transacoes:
+        data_iso = f"{mes_fatura}-01"
+        grupo_str = f', grupo:"{tx["grupo"]}"' if tx.get("grupo") else ""
+        linha = (
+            f'  {{ id:{next_id}, data:"{data_iso}", valor:{tx["valor"]}, '
+            f'estabelecimento:"{tx["estabelecimento"]}", '
+            f'descricao:"{tx["descricao"]}", '
+            f'categoria:"{tx["categoria"]}", '
+            f'pagamento:"Cartão"{grupo_str} }}'
+        )
+        novas_linhas.append(linha)
+        next_id += 1
+
+    bloco = ",\n".join(novas_linhas)
+
+    novo_html = re.sub(
+        r'(// ── GASTOS ─+\nconst ALL_TX = \[)(.*?)(\n\];)',
+        lambda m: m.group(1) + m.group(2) + ",\n" + bloco + m.group(3),
+        html,
+        flags=re.DOTALL
+    )
+
+    with open(DASHBOARD_FILE, "w", encoding="utf-8") as f:
+        f.write(novo_html)
+
+
 # ── Claude: extrai despesa sem nota de mensagem de texto ──────────────────────
 def extrair_despesa_sem_nota_com_ia(texto_msg):
     """Usa Claude para extrair despesa sem comprovante de uma mensagem de texto livre."""
@@ -399,7 +496,8 @@ def main():
             if texto_msg.lower() in ("/start", "/ajuda", "/help"):
                 send_message(
                     "👋 *Bot de Gastos*\n\n"
-                    "📎 *Comprovante:* mande a foto ou PDF\n\n"
+                    "📎 *Comprovante:* mande a foto ou PDF\n"
+                    "🗂 *Fatura do cartão:* mande o PDF da fatura — todas as compras são registradas automaticamente no mês da fatura\n\n"
                     "💰 *Receita:* escreva algo como:\n"
                     "`receita em maio: 35.000 na lavanderia, 25.000 na pousada`\n\n"
                     "🧾 *Despesa sem nota:* escreva algo como:\n"
@@ -463,32 +561,53 @@ def main():
                 )
             continue
 
-        # ── Processar comprovante (foto ou PDF) ───────────────────────────────
+        # ── Processar comprovante ou fatura (foto ou PDF) ────────────────────
         try:
-            send_message("⏳ Processando comprovante...")
-
             file_bytes, real_path = download_file(file_id)
             file_path_hint = real_path or file_path_hint
-
             texto = extrair_texto(file_bytes, file_path_hint)
-            tx = extrair_dados_com_ia(texto, file_bytes, file_path_hint)
-            tx_id = adicionar_transacao(tx)
 
-            houve_atualizacao = True
+            if eh_fatura(texto):
+                send_message("⏳ Fatura detectada! Extraindo todas as transações...")
+                resultado = extrair_fatura_com_ia(texto, file_bytes, file_path_hint)
+                mes_fatura = resultado["mes_fatura"]
+                transacoes = resultado["transacoes"]
+                adicionar_multiplas_transacoes(transacoes, mes_fatura)
+                houve_atualizacao = True
 
-            valor_fmt = f"R$ {tx['valor']:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-            send_message(
-                f"✅ *Comprovante registrado!*\n\n"
-                f"📅 Data: {tx['data']}\n"
-                f"🏪 {tx['estabelecimento']}\n"
-                f"💰 {valor_fmt}\n"
-                f"🏷 {tx['categoria']} · {tx['pagamento']}\n\n"
-                f"Dashboard atualizado em instantes:\n"
-                f"https://diretoriamc.github.io/dashboard-gastos/"
-            )
+                total = sum(t["valor"] for t in transacoes)
+                total_fmt = f"R$ {total:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+                ano, mes = mes_fatura.split("-")
+                meses_pt = {"01":"janeiro","02":"fevereiro","03":"março","04":"abril",
+                            "05":"maio","06":"junho","07":"julho","08":"agosto",
+                            "09":"setembro","10":"outubro","11":"novembro","12":"dezembro"}
+                mes_nome = meses_pt.get(mes, mes)
+                send_message(
+                    f"✅ *Fatura de {mes_nome}/{ano} registrada!*\n\n"
+                    f"🧾 {len(transacoes)} transações adicionadas\n"
+                    f"💰 Total: {total_fmt}\n\n"
+                    f"Dashboard atualizado em instantes:\n"
+                    f"https://diretoriamc.github.io/dashboard-gastos/"
+                )
+            else:
+                send_message("⏳ Processando comprovante...")
+                tx = extrair_dados_com_ia(texto, file_bytes, file_path_hint)
+                tx_id = adicionar_transacao(tx)
+                houve_atualizacao = True
+
+                valor_fmt = f"R$ {tx['valor']:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+                send_message(
+                    f"✅ *Comprovante registrado!*\n\n"
+                    f"📅 Data: {tx['data']}\n"
+                    f"🏪 {tx['estabelecimento']}\n"
+                    f"💰 {valor_fmt}\n"
+                    f"🏷 {tx['categoria']} · {tx['pagamento']}\n\n"
+                    f"Dashboard atualizado em instantes:\n"
+                    f"https://diretoriamc.github.io/dashboard-gastos/"
+                )
 
         except Exception as e:
-            send_message(f"❌ Erro ao processar comprovante: {str(e)}")
+            send_message(f"❌ Erro ao processar arquivo: {str(e)}")
             print(f"Erro: {e}")
 
     estado["offset"] = offset
