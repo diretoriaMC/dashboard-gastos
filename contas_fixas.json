@@ -1,3 +1,12 @@
 {
-  "contas": []
+  "contas": [
+    {
+      "descricao": "Aluguel",
+      "dia_vencimento": 15,
+      "valor": 8000.0,
+      "id": 1,
+      "pago_mes": null,
+      "ultimo_lembrete": null
+    }
+  ]
 }
