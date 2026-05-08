@@ -465,7 +465,6 @@ def verificar_lembretes():
         if conta.get("ultimo_lembrete") == hoje_str:
             continue
 
-        valor_fmt = f"R$ {conta['valor']:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
         if dias_falta == 1:
             urgencia = f"vence *amanhã* ({prox_venc.strftime('%d/%m')})"
         elif dias_falta == 0:
@@ -476,7 +475,6 @@ def verificar_lembretes():
         send_message(
             f"🔔 *Lembrete de conta*\n\n"
             f"📋 {conta['descricao']}\n"
-            f"💰 {valor_fmt}\n"
             f"📅 {urgencia}\n\n"
             f"Quando pagar, me diga:\n`paguei {conta['descricao']}`"
         )
@@ -500,13 +498,11 @@ Mensagem: "{texto_msg}"
 Extraia os dados e responda APENAS com JSON válido:
 {{
   "descricao": "Nome da conta",
-  "dia_vencimento": 15,
-  "valor": 250.00
+  "dia_vencimento": 15
 }}
 
 Regras:
 - dia_vencimento é o dia do mês (1 a 31)
-- valor deve ser número (ex: 250.00)
 - descricao deve ser curta e clara
 - Responda SOMENTE o JSON"""
 
@@ -574,7 +570,6 @@ def listar_contas_texto():
     for c in contas:
         prox_venc = proxima_data_vencimento(c["dia_vencimento"])
         mes_venc  = prox_venc.strftime("%Y-%m")
-        valor_fmt = f"R$ {c['valor']:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
         if c.get("pago_mes") == mes_venc:
             status = "✅ paga"
         else:
@@ -587,7 +582,7 @@ def listar_contas_texto():
                 status = f"🟡 vence amanhã"
             else:
                 status = f"🔵 vence dia {c['dia_vencimento']}"
-        linhas.append(f"• *{c['descricao']}* — {valor_fmt} — {status}")
+        linhas.append(f"• *{c['descricao']}* — {status}")
 
     return "📋 *Suas contas fixas:*\n\n" + "\n".join(linhas)
 
@@ -728,7 +723,7 @@ def main():
                     "🧾 *Despesa sem nota:*\n"
                     "`despesa sem nota em maio: 1.000 em 20/05 - descrição`\n\n"
                     "🔔 *Cadastrar conta fixa:*\n"
-                    "`conta fixa: Neo Energia, dia 15, R$ 250`\n\n"
+                    "`conta fixa: Neo Energia, dia 15`\n\n"
                     "✅ *Marcar conta como paga:*\n"
                     "`paguei Neo Energia`\n\n"
                     "📋 *Ver contas fixas:*\n"
@@ -742,11 +737,9 @@ def main():
                 try:
                     nova = extrair_conta_fixa_com_ia(texto_msg)
                     adicionar_conta_fixa(nova)
-                    valor_fmt = f"R$ {nova['valor']:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
                     send_message(
                         f"✅ *Conta fixa cadastrada!*\n\n"
                         f"📋 {nova['descricao']}\n"
-                        f"💰 {valor_fmt}\n"
                         f"📅 Vence todo dia {nova['dia_vencimento']}\n\n"
                         f"Vou te lembrar no dia anterior ao vencimento."
                     )
