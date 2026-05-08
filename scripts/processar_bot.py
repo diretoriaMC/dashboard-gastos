@@ -676,6 +676,8 @@ def main():
         file_id        = None
         file_path_hint = ""
 
+        caption = msg.get("caption", "").strip()
+
         if "photo" in msg:
             file_id = msg["photo"][-1]["file_id"]
             file_path_hint = "comprovante.jpg"
@@ -876,9 +878,9 @@ def main():
                 )
             else:
                 send_message("⏳ Processando comprovante...")
-                tx = extrair_dados_com_ia(texto, file_bytes, file_path_hint)
+                tx = extrair_dados_com_ia(texto, file_bytes, file_path_hint, contexto=caption)
 
-                if tx.pop("precisa_confirmacao", False):
+                if not caption and tx.pop("precisa_confirmacao", False):
                     estado["aguardando_contexto"] = {"texto_comprovante": texto, "dados_parciais": tx}
                     valor_fmt = f"R$ {tx['valor']:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
                     send_message(
