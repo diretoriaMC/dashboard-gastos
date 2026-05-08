@@ -1,5 +1,16 @@
 {
-  "offset": 760343350,
+  "offset": 760343352,
   "ultima_verificacao_saldo": "2026-05-08",
-  "aguardando_contexto": null
+  "aguardando_contexto": {
+    "texto_comprovante": "Comprovante do Pix\n08/05/2026 - 15:25:16\nValor pago\nR$ 300,00\nForma de pagamento\nAg 1667 Cc 1003583-4\nDados do recebedor\nPara\nTania Moraes Ramos Andrade\nCPF\n***.313.000-**\nChave\n***.313.000-**\nInstitui\u00e7\u00e3o\nBCO DO ESTADO DO RS S.A.\nDados do pagador\nDe\nLeonardo Francisco Valadares Maia Cavalcanti\nCPF\n***.881.044-**\nInstitui\u00e7\u00e3o\nBCO SANTANDER (BRASIL) S.A.\nID/Transa\u00e7\u00e3o\nE9040088820260508182461112294297\nComprovante do Pix 1/2\nData e hora da transa\u00e7\u00e3o\n08/05/2026 - 15:25:16\nC\u00f3digo de autentica\u00e7\u00e3o\nACA8DDBA35EDD1531770880\nCentral de Atendimento Santander\n4004-3535 (Capitais e Regi\u00f5es Metropolitanas)\n0800-702-3535 (Demais Localidades)\nSAC 0800-762-7777\nOuvidoria 0800-726-0332\nComprovante do Pix 2/2",
+    "dados_parciais": {
+      "data": "08/05/2026",
+      "valor": 300.0,
+      "estabelecimento": "Tania Moraes Ramos Andrade",
+      "descricao": "Transfer\u00eancia Pix",
+      "categoria": "Outros",
+      "pagamento": "Pix",
+      "grupo": ""
+    }
+  }
 }
