@@ -1,5 +1,16 @@
 {
-  "offset": 760343373,
+  "offset": 760343374,
   "ultima_verificacao_saldo": "2026-05-13",
-  "aguardando_contexto": null
+  "aguardando_contexto": {
+    "texto_comprovante": "[4] Pix realizado com sucesso!\n\nComprovante de pagamento\n\n13/05/2026 - 10:32:40\n\nValor R$ 5.013,00\nTarifa Tarifa cobrada de acordo com Tabela\n\nde Tarifas, dispon\u00edvel na Internet\nDescri\u00e7\u00e3o\n\nN\u00e3o informado\n\n** RECEBEDOR\n\nNome Bravi Distribuidora\nCNP) 19.457.137/0001-06\nInstitui\u00e7\u00e3o ITAU UNIBANCO SA\nO pacaDOR\n\nNome 54.837.209 Ltda\nCNPJ 54.837.209/0001-33\nInstitui\u00e7\u00e3o BANCO DO NORDESTE DO\nBRASILS.A.\n\nms) Banco do\n\nVas Nordeste\n\nID/Transa\u00e7\u00e3o\n\nE072373732026051313318XW68QQ2FII\n\nC\u00f3digo de Autentica\u00e7\u00e3o\n\nMgkKvtUj99wSQ7nLhLwt6FC9mbEn8rcttmOioEcE\n3/bOfcs7XmHZIN3eVWsOzZWPTq\n\n",
+    "dados_parciais": {
+      "data": "13/05/2026",
+      "valor": 5013.0,
+      "estabelecimento": "Bravi Distribuidora",
+      "descricao": "Transfer\u00eancia Pix",
+      "categoria": "Outros",
+      "pagamento": "Pix",
+      "grupo": "bravi-distribuidora"
+    }
+  }
 }
