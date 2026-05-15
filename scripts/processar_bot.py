@@ -188,10 +188,17 @@ Regras:
 
 
 # ── Claude: detecta e extrai fatura de cartão ────────────────────────────────
-def eh_fatura(texto):
-    t = texto.lower()
-    palavras = ["fatura", "cartão de crédito", "cartao de credito", "extrato", "vencimento", "limite disponível"]
-    return sum(1 for p in palavras if p in t) >= 2
+def eh_fatura(texto, legenda=""):
+    t = (texto + " " + legenda).lower()
+    palavras = [
+        "fatura", "cartao de credito", "cartão de crédito",
+        "vencimento", "limite disponivel", "limite disponível",
+        "detalhamento da fatura", "pagamento minimo", "pagamento mínimo",
+        "total a pagar", "valor desta fatura", "data de vencimento",
+        "santander", "nubank", "itau", "bradesco", "caixa",
+        "mastercard", "visa", "elo", "parcelamentos", "despesas"
+    ]
+    return sum(1 for p in palavras if p in t) >= 3
 
 def extrair_fatura_com_ia(texto, file_bytes=None, file_path=""):
     """Usa Claude para extrair todas as transações de uma fatura de cartão."""
@@ -205,12 +212,12 @@ def extrair_fatura_com_ia(texto, file_bytes=None, file_path=""):
         media = "image/jpeg" if ext in (".jpg", ".jpeg") else "image/png"
         content.append({"type": "image", "source": {"type": "base64", "media_type": media, "data": b64}})
 
-    prompt = f"""Você é um assistente que extrai dados de faturas de cartão de crédito brasileiras.
+    prompt = f"""Você é um assistente que extrai dados de faturas de cartão de crédito brasileiras (Santander, Nubank, Itaú, Bradesco, etc.).
 
 Texto da fatura:
 {texto}
 
-Extraia o mês de referência da fatura e TODAS as transações/compras listadas.
+Extraia o mês de referência da fatura e TODAS as transações de compra/despesa.
 Responda APENAS com um JSON válido nesse formato:
 {{
   "mes_fatura": "AAAA-MM",
@@ -230,10 +237,13 @@ Categorias disponíveis: Alimentação, Restaurante, Saúde, Moradia, Transporte
 
 Regras:
 - valor deve ser número positivo (ex: 45.90)
-- Ignore lançamentos de pagamento da fatura anterior, IOF sobre parcelamentos já registrados, e ajustes internos do cartão
-- Inclua todas as compras, incluindo parcelas (ex: "Compra 2/6" é uma parcela válida)
-- grupo em kebab-case apenas para estabelecimentos recorrentes
-- mes_fatura é o mês a que se referem os gastos (ex: fatura de abril = "2026-04")
+- IGNORE: linhas de pagamento da fatura ("PAGAMENTO DE FATURA"), valores negativos (estornos/créditos), IOF, cotação de dólar, linhas de saldo/limite/resumo
+- INCLUA: todas as linhas das seções "Despesas" e "Parcelamentos" com valor positivo, de todos os cartões/titulares presentes na fatura
+- Parcelas são compras válidas (ex: "HIPOLITOALIANCAS 10/10 549,00" = R$ 549,00)
+- Anuidade diferenciada e tarifas bancárias devem ser incluídas como categoria "Serviços"
+- Se houver par compra+estorno do mesmo estabelecimento e valor, ignore os dois
+- mes_fatura: use o mês do vencimento da fatura (ex: vencimento 10/05/2026 → "2026-05")
+- grupo em kebab-case apenas para estabelecimentos que aparecem mais de uma vez
 - Responda SOMENTE o JSON, sem texto antes ou depois"""
 
     content.append({"type": "text", "text": prompt})
@@ -673,6 +683,8 @@ def main():
 
         caption = msg.get("caption", "").strip()
 
+        legenda = msg.get("caption", "").strip()
+
         if "photo" in msg:
             file_id = msg["photo"][-1]["file_id"]
             file_path_hint = "comprovante.jpg"
@@ -847,7 +859,7 @@ def main():
             file_path_hint = real_path or file_path_hint
             texto = extrair_texto(file_bytes, file_path_hint)
 
-            if eh_fatura(texto):
+            if eh_fatura(texto, legenda):
                 send_message("⏳ Fatura detectada! Extraindo todas as transações...")
                 resultado = extrair_fatura_com_ia(texto, file_bytes, file_path_hint)
                 mes_fatura = resultado["mes_fatura"]
@@ -871,9 +883,9 @@ def main():
                 )
             else:
                 send_message("⏳ Processando comprovante...")
-                tx = extrair_dados_com_ia(texto, file_bytes, file_path_hint, contexto=caption)
+                tx = extrair_dados_com_ia(texto, file_bytes, file_path_hint, contexto=legenda)
 
-                if not caption and tx.pop("precisa_confirmacao", False):
+                if not legenda and tx.pop("precisa_confirmacao", False):
                     estado["aguardando_contexto"] = {"texto_comprovante": texto, "dados_parciais": tx}
                     valor_fmt = f"R$ {tx['valor']:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
                     send_message(
