@@ -5,7 +5,7 @@
       "dia_vencimento": 15,
       "valor": 8000.0,
       "id": 1,
-      "pago_mes": null,
+      "pago_mes": "2026-05",
       "ultimo_lembrete": "2026-05-15"
     }
   ]
