@@ -1,16 +1,5 @@
 {
-  "offset": 760343393,
+  "offset": 760343396,
   "ultima_verificacao_saldo": "2026-05-18",
-  "aguardando_contexto": {
-    "texto_comprovante": "Comprovante de transfer\u00eancia\nRealizada em 18 mai 2026 \u00e0s 17:37:13\nValor Tipo\nR$ 40,00 Pix | Transfer\u00eancia\nDADOS DE DESTINO\nNome CPF\nEDNALDO AUGUSTO SOUSA SANTOS ***.548.484-**\nInstitui\u00e7\u00e3o\nBANCO BV S.A.\nDADOS DE ORIGEM\nNome CNPJ\nLAVE & LEVE 54.837.209/0001-33\nInstitui\u00e7\u00e3o Ag\u00eancia Conta\nSTONE INSTITUI\u00c7\u00c3O DE PAGAMENTO S.A. 0001 28235497-6\nINFORMA\u00c7\u00d5ES ADICIONAIS\nID da transa\u00e7\u00e3o C\u00f3digo da autentica\u00e7\u00e3o\nE165015552026051820376d72e133966 57a526c1-49ac-408d-8ff9-1df8cc0e3d20\nD\u00favidas? Acesse nossa Central de ajuda. Stone Institui\u00e7\u00e3o de Pagamento S.A.\nCNPJ 16.501.555/0001-57\nRegi\u00f5es Metropolitanas Outras Regi\u00f5es Ouvidoria\n3004-9680 0800 326 0506 0800 942 2174 Atendimento em dias \u00fateis, das 09h \u00e0s 18h (hor\u00e1rio de Bras\u00edlia). Voc\u00ea\ntamb\u00e9m, pode enviar um e-mail para ouvidoria@stone.com.br.",
-    "dados_parciais": {
-      "data": "18/05/2026",
-      "valor": 40.0,
-      "estabelecimento": "EDNALDO AUGUSTO SOUSA SANTOS",
-      "descricao": "Transfer\u00eancia Pix",
-      "categoria": "Outros",
-      "pagamento": "Pix",
-      "grupo": ""
-    }
-  }
+  "aguardando_contexto": null
 }
