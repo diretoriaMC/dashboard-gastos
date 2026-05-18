@@ -140,10 +140,7 @@ Regras:
         messages=[{"role": "user", "content": content}]
     )
 
-    raw = resp.content[0].text.strip()
-    raw = re.sub(r"^```json\s*", "", raw)
-    raw = re.sub(r"\s*```$", "", raw)
-    return json.loads(raw)
+    return parse_json_robusto(resp.content[0].text)
 
 
 # ── Claude: extrai receitas de mensagem de texto ───────────────────────────────
@@ -181,9 +178,21 @@ Regras:
         messages=[{"role": "user", "content": prompt}]
     )
 
-    raw = resp.content[0].text.strip()
-    raw = re.sub(r"^```json\s*", "", raw)
+    return parse_json_robusto(resp.content[0].text)
+
+
+# ── Parser JSON robusto ───────────────────────────────────────────────────────
+def parse_json_robusto(raw):
+    """Extrai e parseia JSON da resposta da IA, lidando com markdown e trailing commas."""
+    raw = raw.strip()
+    raw = re.sub(r"^```(?:json)?\s*", "", raw)
     raw = re.sub(r"\s*```$", "", raw)
+    # Localiza o bloco JSON (objeto ou array)
+    m = re.search(r'(\{.*\}|\[.*\])', raw, re.DOTALL)
+    if m:
+        raw = m.group(1)
+    # Remove trailing commas antes de } ou ]
+    raw = re.sub(r',(\s*[}\]])', r'\1', raw)
     return json.loads(raw)
 
 
@@ -250,14 +259,32 @@ Regras:
 
     resp = client.messages.create(
         model="claude-haiku-4-5-20251001",
-        max_tokens=4096,
+        max_tokens=16384,
         messages=[{"role": "user", "content": content}]
     )
 
     raw = resp.content[0].text.strip()
-    raw = re.sub(r"^```json\s*", "", raw)
-    raw = re.sub(r"\s*```$", "", raw)
-    return json.loads(raw)
+    try:
+        return parse_json_robusto(raw)
+    except json.JSONDecodeError as e:
+        # Tenta recuperar parcialmente: encontra todas as transações válidas até o ponto de falha
+        try:
+            mes_match = re.search(r'"mes_fatura"\s*:\s*"([^"]+)"', raw)
+            mes_fatura = mes_match.group(1) if mes_match else datetime.now().strftime("%Y-%m")
+            # Captura cada objeto de transação completo
+            tx_pattern = r'\{\s*"valor"\s*:\s*[\d.]+\s*,\s*"estabelecimento"\s*:\s*"[^"]*"\s*,\s*"descricao"\s*:\s*"[^"]*"\s*,\s*"categoria"\s*:\s*"[^"]*"(?:\s*,\s*"grupo"\s*:\s*"[^"]*")?\s*\}'
+            transacoes = []
+            for m in re.finditer(tx_pattern, raw):
+                try:
+                    transacoes.append(parse_json_robusto(m.group(0)))
+                except Exception:
+                    continue
+            if transacoes:
+                return {"mes_fatura": mes_fatura, "transacoes": transacoes}
+        except Exception:
+            pass
+        raise Exception(f"Resposta da IA inválida (resposta com {len(raw)} caracteres). Erro: {e}")
+
 
 def adicionar_multiplas_transacoes(transacoes, mes_fatura):
     """Adiciona várias transações de uma vez ao dashboard, todas com data do mês da fatura."""
@@ -335,10 +362,7 @@ Regras:
         messages=[{"role": "user", "content": prompt}]
     )
 
-    raw = resp.content[0].text.strip()
-    raw = re.sub(r"^```json\s*", "", raw)
-    raw = re.sub(r"\s*```$", "", raw)
-    return json.loads(raw)
+    return parse_json_robusto(resp.content[0].text)
 
 
 # ── Atualiza ALL_TX no dashboard ───────────────────────────────────────────────
@@ -521,9 +545,7 @@ Regras:
         max_tokens=256,
         messages=[{"role": "user", "content": prompt}]
     )
-    raw = re.sub(r"^```json\s*", "", resp.content[0].text.strip())
-    raw = re.sub(r"\s*```$", "", raw)
-    return json.loads(raw)
+    return parse_json_robusto(resp.content[0].text)
 
 
 def identificar_conta_paga_com_ia(texto_msg, contas):
