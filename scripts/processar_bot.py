@@ -118,6 +118,7 @@ Extraia os dados e responda APENAS com um JSON válido nesse formato:
   "descricao": "Descrição curta do gasto",
   "categoria": "Categoria",
   "pagamento": "Pix|Boleto|Débito|Crédito|Dinheiro",
+  "parcela": "2/6",
   "grupo": "kebab-case-para-agrupar-recorrentes",
   "precisa_confirmacao": false
 }}
@@ -129,6 +130,7 @@ Regras:
 - valor deve ser número (ex: 45.90, não "R$ 45,90")
 - grupo em kebab-case, apenas para estabelecimentos recorrentes (ex: "supermercado-soberano")
 - Se for compra no cartão de crédito, pagamento = "Cartão"
+- parcela: formato "X/N" APENAS se o comprovante indicar parcelamento (ex: "Parcela 2/6", "2/6", "em 6x"). Se for à vista ou sem indicação, OMITA o campo
 - Se o estabelecimento for nome de pessoa física sem descrição clara, ou se não conseguir identificar a categoria com segurança, coloque precisa_confirmacao: true
 - Responda SOMENTE o JSON, sem texto antes ou depois"""
 
@@ -236,6 +238,7 @@ Responda APENAS com um JSON válido nesse formato:
       "estabelecimento": "Nome do estabelecimento",
       "descricao": "Descrição curta",
       "categoria": "Categoria",
+      "parcela": "10/10",
       "grupo": "kebab-case-opcional"
     }},
     ...
@@ -248,7 +251,8 @@ Regras:
 - valor deve ser número positivo (ex: 45.90)
 - IGNORE: linhas de pagamento da fatura ("PAGAMENTO DE FATURA"), valores negativos (estornos/créditos), IOF, cotação de dólar, linhas de saldo/limite/resumo
 - INCLUA: todas as linhas das seções "Despesas" e "Parcelamentos" com valor positivo, de todos os cartões/titulares presentes na fatura
-- Parcelas são compras válidas (ex: "HIPOLITOALIANCAS 10/10 549,00" = R$ 549,00)
+- Parcelas são compras válidas (ex: "HIPOLITOALIANCAS 10/10 549,00" = R$ 549,00, parcela "10/10")
+- parcela: formato "X/N" (parcela atual / total). Use APENAS quando a linha indicar parcelamento (ex: "08/10", "Compra 2/6"). Se for compra à vista (sem indicação de parcela), OMITA o campo
 - Anuidade diferenciada e tarifas bancárias devem ser incluídas como categoria "Serviços"
 - Se houver par compra+estorno do mesmo estabelecimento e valor, ignore os dois
 - mes_fatura: use o mês do vencimento da fatura (ex: vencimento 10/05/2026 → "2026-05")
@@ -298,12 +302,13 @@ def adicionar_multiplas_transacoes(transacoes, mes_fatura):
     for tx in transacoes:
         data_iso = f"{mes_fatura}-01"
         grupo_str = f', grupo:"{tx["grupo"]}"' if tx.get("grupo") else ""
+        parcela_str = f', parcela:"{tx["parcela"]}"' if tx.get("parcela") else ""
         linha = (
             f'  {{ id:{next_id}, data:"{data_iso}", valor:{tx["valor"]}, '
             f'estabelecimento:"{tx["estabelecimento"]}", '
             f'descricao:"{tx["descricao"]}", '
             f'categoria:"{tx["categoria"]}", '
-            f'pagamento:"Cartão"{grupo_str} }}'
+            f'pagamento:"Cartão"{grupo_str}{parcela_str} }}'
         )
         novas_linhas.append(linha)
         next_id += 1
@@ -389,13 +394,14 @@ def adicionar_transacao(tx, sem_comprovante=False):
 
     grupo_str = f', grupo:"{tx["grupo"]}"' if tx.get("grupo") else ""
     sem_comprovante_str = ", semComprovante:true" if sem_comprovante else ""
+    parcela_str = f', parcela:"{tx["parcela"]}"' if tx.get("parcela") else ""
 
     nova_linha = (
         f'  {{ id:{next_id}, data:"{data_iso}", valor:{tx["valor"]}, '
         f'estabelecimento:"{tx["estabelecimento"]}", '
         f'descricao:"{tx["descricao"]}", '
         f'categoria:"{tx["categoria"]}", '
-        f'pagamento:"{tx["pagamento"]}"{grupo_str}{sem_comprovante_str} }}'
+        f'pagamento:"{tx["pagamento"]}"{grupo_str}{parcela_str}{sem_comprovante_str} }}'
     )
 
     def _insere(m):
