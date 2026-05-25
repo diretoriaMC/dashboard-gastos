@@ -90,6 +90,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .cat-tx-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;position:relative}
 .cat-tx-right b{font-size:12.5px;font-weight:700}
 
+/* BADGE DE PARCELA */
+.parcela-badge{display:inline-block;font-size:10px;font-weight:600;background:#ddd6fe;color:#5b21b6;padding:1px 6px;border-radius:10px;margin-left:4px;letter-spacing:.3px;vertical-align:middle}
+
 /* GASTO EXTRAORDINÁRIO */
 .cat-tx-item.tx-extra{background:#fffbeb;border-color:#fde68a;border-left:3px solid #f59e0b}
 .extra-btn{font-size:11.5px;padding:3px 7px;border-radius:14px;border:1px solid #fde68a;background:#fffbeb;cursor:pointer;line-height:1;filter:grayscale(100%);opacity:.55;transition:all .15s}
@@ -104,6 +107,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .recat-opt{padding:7px 10px;font-size:12.5px;border-radius:7px;cursor:pointer;transition:background .15s}
 .recat-opt:hover{background:#f3f4f6}
 .recat-clear{border-top:1px solid #f3f4f6;margin-top:4px;padding-top:8px;color:#6366f1;font-weight:500}
+.recat-new{border-top:1px solid #f3f4f6;margin-top:4px;padding-top:8px;color:#059669;font-weight:600}
+.recat-del{float:right;background:none;border:none;color:#9ca3af;font-size:14px;cursor:pointer;padding:0 4px;line-height:1}
+.recat-del:hover{color:#ef4444}
+
+/* FORMULÁRIO NOVA CATEGORIA */
+.recat-menu .cat-form{padding:8px 6px}
+.recat-menu .cat-form input{display:block;width:100%;padding:6px 9px;font-size:12.5px;border:1px solid #e5e7eb;border-radius:7px;margin-bottom:6px;box-sizing:border-box}
+.recat-menu .cat-form input:focus{outline:none;border-color:#6366f1;box-shadow:0 0 0 2px #c7d2fe}
+.emoji-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:3px;margin:6px 0;max-height:140px;overflow-y:auto;padding:4px;background:#f9fafb;border-radius:7px}
+.emoji-pick{display:flex;align-items:center;justify-content:center;font-size:18px;padding:5px;border-radius:5px;cursor:pointer;transition:background .15s}
+.emoji-pick:hover{background:#e0e7ff}
+.btn-criar{flex:1;padding:7px;border:none;border-radius:7px;background:#10b981;color:white;font-weight:600;font-size:12.5px;cursor:pointer}
+.btn-criar:hover{background:#059669}
+.btn-cancelar{flex:1;padding:7px;border:1px solid #e5e7eb;border-radius:7px;background:white;color:#6b7280;font-weight:500;font-size:12.5px;cursor:pointer}
+.btn-cancelar:hover{background:#f9fafb}
 
 /* TOP 5 */
 .top-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:12px;background:#f9fafb;margin-bottom:7px}
@@ -636,15 +654,25 @@ const ALL_RECEITAS = [
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const CATS = {
-  "Alimentação": { cor:"#22c55e", icone:"🍽️" },
-  "Transporte":  { cor:"#3b82f6", icone:"🚗" },
-  "Saúde":       { cor:"#ef4444", icone:"💊" },
-  "Moradia":     { cor:"#f97316", icone:"🏠" },
-  "Lazer":       { cor:"#a855f7", icone:"🎉" },
-  "Compras":     { cor:"#ec4899", icone:"🛍️" },
-  "Serviços":    { cor:"#06b6d4", icone:"🔧" },
-  "Rayssa":      { cor:"#f43f8e", icone:"💕" },
-  "Outros":      { cor:"#6b7280", icone:"📦" },
+  "Alimentação":    { cor:"#22c55e", icone:"🍽️" },
+  "Restaurante":    { cor:"#84cc16", icone:"🍕" },
+  "Transporte":     { cor:"#3b82f6", icone:"🚗" },
+  "Saúde":          { cor:"#ef4444", icone:"💊" },
+  "Moradia":        { cor:"#f97316", icone:"🏠" },
+  "Casa":           { cor:"#fb923c", icone:"🛋️" },
+  "Lazer":          { cor:"#a855f7", icone:"🎉" },
+  "Compras":        { cor:"#ec4899", icone:"🛍️" },
+  "Compras Online": { cor:"#db2777", icone:"🛒" },
+  "Vestuário":      { cor:"#c026d3", icone:"👕" },
+  "Beleza":         { cor:"#e11d48", icone:"💅" },
+  "Serviços":       { cor:"#06b6d4", icone:"🔧" },
+  "Assinaturas":    { cor:"#0ea5e9", icone:"📺" },
+  "Educação":       { cor:"#8b5cf6", icone:"🎓" },
+  "Viagem":         { cor:"#0d9488", icone:"✈️" },
+  "Impostos":       { cor:"#b91c1c", icone:"🧾" },
+  "Doações":        { cor:"#f59e0b", icone:"🤝" },
+  "Rayssa":         { cor:"#f43f8e", icone:"💕" },
+  "Outros":         { cor:"#6b7280", icone:"📦" },
 };
 
 const NEGOCIOS = {
@@ -736,6 +764,37 @@ function aplicarExtras(txs) {
   return txs.map(t => s.has(t.id) ? {...t, _extraordinario: true} : t);
 }
 
+// ── CATEGORIAS CUSTOMIZADAS (localStorage) ───────────────────────────────────
+const PALETA_CATS = ["#06b6d4","#8b5cf6","#ec4899","#f43f5e","#84cc16","#10b981","#0ea5e9","#a855f7","#d946ef","#14b8a6","#f59e0b","#6366f1"];
+
+function getCatsCustom() {
+  try { return JSON.parse(localStorage.getItem("cats_custom") || "{}"); }
+  catch { return {}; }
+}
+function getAllCats() {
+  return {...CATS, ...getCatsCustom()};
+}
+function getCatConfig(name) {
+  return getAllCats()[name] || {cor: "#6b7280", icone: "📦"};
+}
+function criarCategoria(nome, icone) {
+  nome = (nome || "").trim();
+  if (!nome) return null;
+  const todas = getAllCats();
+  if (todas[nome]) return todas[nome]; // Já existe
+  const c = getCatsCustom();
+  const usadas = Object.values({...CATS, ...c}).map(x => x.cor);
+  const cor = PALETA_CATS.find(p => !usadas.includes(p)) || PALETA_CATS[Math.floor(Math.random()*PALETA_CATS.length)];
+  c[nome] = {cor, icone: icone || "📦"};
+  localStorage.setItem("cats_custom", JSON.stringify(c));
+  return c[nome];
+}
+function removerCatCustom(nome) {
+  const c = getCatsCustom();
+  delete c[nome];
+  localStorage.setItem("cats_custom", JSON.stringify(c));
+}
+
 const categoriasAbertas = new Set();
 
 function mesAtual()     { return todosOsMeses[mesIdx]; }
@@ -752,18 +811,25 @@ function toggleCatExp(cat) {
 function abrirMenuRecat(id, btn) {
   const ev = window.event;
   if (ev) ev.stopPropagation();
-  // Remove menu já aberto
   document.querySelectorAll(".recat-menu").forEach(m => m.remove());
-  const cats = Object.keys(CATS);
+  const todas = getAllCats();
+  const customCats = getCatsCustom();
+  const cats = Object.keys(todas);
   const menu = document.createElement("div");
   menu.className = "recat-menu";
+  menu.dataset.txid = id;
   menu.innerHTML = `
     <div class="recat-header">Mover para categoria:</div>
-    ${cats.map(c => `<div class="recat-opt" onclick="aplicarRecat(${id},'${c}')">${CATS[c].icone} ${c}</div>`).join("")}
+    ${cats.map(c => {
+      const isCustom = !!customCats[c];
+      return `<div class="recat-opt" onclick="aplicarRecat(${id},'${c.replace(/'/g,"\\'")}')">
+        ${todas[c].icone} ${c}${isCustom?` <button class="recat-del" onclick="event.stopPropagation();removerCatCustomConfirm('${c.replace(/'/g,"\\'")}', this)" title="Apagar categoria customizada">×</button>`:""}
+      </div>`;
+    }).join("")}
+    <div class="recat-opt recat-new" onclick="abrirFormularioNovaCat(${id}, this)">✨ Criar nova categoria...</div>
     <div class="recat-opt recat-clear" onclick="aplicarRecat(${id},null)">↺ Reverter classificação original</div>
   `;
   btn.parentNode.appendChild(menu);
-  // Fechar ao clicar fora
   setTimeout(() => {
     document.addEventListener("click", function fechar(e) {
       if (!menu.contains(e.target)) {
@@ -776,6 +842,44 @@ function abrirMenuRecat(id, btn) {
 function aplicarRecat(id, novaCat) {
   if (novaCat === null) removerOverride(id);
   else setOverride(id, novaCat);
+  render();
+}
+function removerCatCustomConfirm(nome, btn) {
+  if (!confirm(`Apagar a categoria "${nome}"?\n\nGastos atualmente nessa categoria vão voltar à classificação original.`)) return;
+  // Remove overrides apontando pra essa categoria
+  const o = getOverrides();
+  Object.keys(o).forEach(k => { if (o[k] === nome) delete o[k]; });
+  localStorage.setItem("cat_overrides", JSON.stringify(o));
+  removerCatCustom(nome);
+  document.querySelectorAll(".recat-menu").forEach(m => m.remove());
+  render();
+}
+function abrirFormularioNovaCat(id, opt) {
+  const menu = opt.parentNode;
+  menu.innerHTML = `
+    <div class="recat-header">Criar nova categoria:</div>
+    <div class="cat-form">
+      <input type="text" id="nova-cat-nome" placeholder="Nome (ex: Pets)" maxlength="30"/>
+      <input type="text" id="nova-cat-emoji" placeholder="Emoji" maxlength="4" value="📦" style="width:60px;text-align:center"/>
+      <div class="emoji-grid">
+        ${["🐕","🐱","🎮","🎬","🎵","📚","✈️","🍕","☕","🎁","🏋️","⚽","🎨","🛠️","💡","📱","🎓","⛽","💝","💼","🏆","🎂","💊","👶","🌿","🛏️","🔑","🚀","🛒","🥗"]
+          .map(e => `<span class="emoji-pick" onclick="document.getElementById('nova-cat-emoji').value='${e}'">${e}</span>`).join("")}
+      </div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <button onclick="criarECat(${id})" class="btn-criar">Criar e aplicar</button>
+        <button onclick="abrirMenuRecat(${id}, this)" class="btn-cancelar">Cancelar</button>
+      </div>
+    </div>
+  `;
+  setTimeout(() => document.getElementById("nova-cat-nome")?.focus(), 0);
+}
+function criarECat(id) {
+  const nome = document.getElementById("nova-cat-nome").value.trim();
+  const emoji = document.getElementById("nova-cat-emoji").value.trim() || "📦";
+  if (!nome) { alert("Digite um nome para a categoria."); return; }
+  criarCategoria(nome, emoji);
+  setOverride(id, nome);
+  document.querySelectorAll(".recat-menu").forEach(m => m.remove());
   render();
 }
 
@@ -921,8 +1025,8 @@ function renderResumo(txs, recs, totalGasto, totalReceita, saldo, prevTotal, k, 
       <h2>💸 Gastos por Categoria</h2>
       ${catArr.map(([name,value])=>{
         const pct=(value/totalGasto*100).toFixed(1);
-        const cor=CATS[name]?.cor||"#6b7280";
-        const ico=CATS[name]?.icone||"📦";
+        const cor=getCatConfig(name).cor;
+        const ico=getCatConfig(name).icone;
         const aberta = categoriasAbertas.has(name);
         const txsCat = txs.filter(t=>t.categoria===name).sort((a,b)=>b.valor-a.valor);
         return `
@@ -938,7 +1042,7 @@ function renderResumo(txs, recs, totalGasto, totalReceita, saldo, prevTotal, k, 
           ${txsCat.map(t => `
             <div class="cat-tx-item${t._extraordinario?' tx-extra':''}">
               <div class="cat-tx-info">
-                <b>${t._extraordinario?'⭐ ':''}${t.descricao}</b>
+                <b>${t._extraordinario?'⭐ ':''}${t.descricao}${t.parcela?` <span class="parcela-badge">${t.parcela}</span>`:''}</b>
                 <small>${t.estabelecimento} · ${fmtD(t.data)} · ${t.pagamento}${t._reclassificado?' · <span style="color:#6366f1">✎ reclassificado</span>':''}${t._extraordinario?' · <span style="color:#d97706;font-weight:600">extraordinário</span>':''}</small>
               </div>
               <div class="cat-tx-right">
@@ -959,7 +1063,7 @@ function renderResumo(txs, recs, totalGasto, totalReceita, saldo, prevTotal, k, 
       ${todosOrdenados.map((t,i)=>`
         <div class="top-item">
           <div class="top-rank">#${i+1}</div>
-          <div class="top-info"><b>${t.descricao}</b><small>${t.estabelecimento} · ${fmtD(t.data)} · ${t.pagamento}</small></div>
+          <div class="top-info"><b>${t.descricao}${t.parcela?` <span class="parcela-badge">${t.parcela}</span>`:''}</b><small>${t.estabelecimento} · ${fmtD(t.data)} · ${t.pagamento}</small></div>
           <div class="top-val">${fmt(t.valor)}</div>
         </div>`).join("")||'<p class="empty">Sem dados</p>'}
     </div>
@@ -987,13 +1091,13 @@ function renderGastos(txs) {
   );
 
   const cardHtml = t => {
-    const cor=CATS[t.categoria]?.cor||"#6b7280";
-    const ico=CATS[t.categoria]?.icone||"📦";
+    const cor=getCatConfig(t.categoria).cor;
+    const ico=getCatConfig(t.categoria).icone;
     return `
       <div class="tx-item" style="${t.semComprovante?'border-left:3px solid #f59e0b;':''}">
         <div class="tx-icon" style="background:${cor}22">${ico}</div>
         <div class="tx-info">
-          <b>${t.descricao}</b>
+          <b>${t.descricao}${t.parcela?` <span class="parcela-badge">${t.parcela}</span>`:''}</b>
           <small>${t.estabelecimento}</small>
           <small>${fmtD(t.data)} · ${t.pagamento}${t.semComprovante?' · <span style="color:#d97706;font-weight:600">⚠ sem comprovante</span>':''}</small>
         </div>
@@ -1006,7 +1110,7 @@ function renderGastos(txs) {
 
   const filterBtns = ["Todas",...catsPresentes].map(cat=>`
     <button class="filter-btn${cat===filtroAtivo?" active":""}"
-      onclick="setFiltro('${cat}')">${(CATS[cat]?.icone||"")} ${cat}</button>`).join("");
+      onclick="setFiltro('${cat}')">${((getCatConfig(cat).icone||""))} ${cat}</button>`).join("");
 
   const toggleView = `
     <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
@@ -1071,7 +1175,7 @@ function renderGastos(txs) {
         const key=top.grupo||("_solo_"+top.id);
         const multi=grupo.length>1;
         const isExp=expandidos.has(key);
-        const cor=CATS[top.categoria]?.cor||"#6b7280";
+        const cor=getCatConfig(top.categoria).cor;
         const totalGrupo=grupo.reduce((s,t)=>s+t.valor,0);
 
         if(!multi) return `<div style="margin-bottom:8px">${cardHtml(top)}</div>`;
@@ -1137,10 +1241,10 @@ function renderGraficos(txs, recs, totalGasto, totalReceita) {
     const a1=angle*Math.PI*2, a2=(angle+pct)*Math.PI*2;
     const x1=Math.cos(a1),y1=Math.sin(a1),x2=Math.cos(a2),y2=Math.sin(a2);
     const large=pct>.5?1:0;
-    const cor=CATS[name]?.cor||"#6b7280";
+    const cor=getCatConfig(name).cor;
     const R=0.9,r=0.45;
     pieSlices+=`<path d="M${R*x1},${R*y1} A${R},${R} 0 ${large} 1 ${R*x2},${R*y2} L${r*x2},${r*y2} A${r},${r} 0 ${large} 0 ${r*x1},${r*y1} Z" fill="${cor}"/>`;
-    legItems+=`<div class="pie-legend-item"><div class="pie-dot" style="background:${cor}"></div>${CATS[name]?.icone} ${name} (${(pct*100).toFixed(1)}%)</div>`;
+    legItems+=`<div class="pie-legend-item"><div class="pie-dot" style="background:${cor}"></div>${getCatConfig(name).icone} ${name} (${(pct*100).toFixed(1)}%)</div>`;
     angle+=pct;
   });
 
@@ -1148,8 +1252,8 @@ function renderGraficos(txs, recs, totalGasto, totalReceita) {
   const maxCat=catArr.length?catArr[0][1]:1;
   const barsHtml=catArr.map(([name,value])=>{
     const pct=(value/maxCat*100).toFixed(0);
-    const cor=CATS[name]?.cor||"#6b7280";
-    const ico=CATS[name]?.icone||"📦";
+    const cor=getCatConfig(name).cor;
+    const ico=getCatConfig(name).icone;
     return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
       <div style="width:90px;font-size:12px;text-align:right;flex-shrink:0;color:#374151">${ico} ${name}</div>
       <div style="flex:1;background:#f3f4f6;border-radius:99px;height:24px">
