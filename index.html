@@ -90,6 +90,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .cat-tx-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;position:relative}
 .cat-tx-right b{font-size:12.5px;font-weight:700}
 
+/* GASTO EXTRAORDINÁRIO */
+.cat-tx-item.tx-extra{background:#fffbeb;border-color:#fde68a;border-left:3px solid #f59e0b}
+.extra-btn{font-size:11.5px;padding:3px 7px;border-radius:14px;border:1px solid #fde68a;background:#fffbeb;cursor:pointer;line-height:1;filter:grayscale(100%);opacity:.55;transition:all .15s}
+.extra-btn:hover{opacity:1;filter:none}
+.extra-btn.active{filter:none;opacity:1;background:#fef3c7;border-color:#f59e0b}
+
 /* BOTÃO RECATEGORIZAR */
 .recat-btn{font-size:10.5px;padding:3px 8px;border-radius:14px;border:1px solid #c7d2fe;background:#eef2ff;color:#4338ca;cursor:pointer;font-weight:600;white-space:nowrap}
 .recat-btn:hover{background:#e0e7ff}
@@ -714,10 +720,26 @@ function aplicarOverrides(txs) {
   return txs.map(t => o[t.id] ? {...t, categoria: o[t.id], _reclassificado: true} : t);
 }
 
+// ── EXTRAORDINÁRIOS (localStorage) ───────────────────────────────────────────
+function getExtras() {
+  try { return new Set(JSON.parse(localStorage.getItem("extraordinarios") || "[]")); }
+  catch { return new Set(); }
+}
+function toggleExtra(id) {
+  const s = getExtras();
+  if (s.has(id)) s.delete(id); else s.add(id);
+  localStorage.setItem("extraordinarios", JSON.stringify([...s]));
+  render();
+}
+function aplicarExtras(txs) {
+  const s = getExtras();
+  return txs.map(t => s.has(t.id) ? {...t, _extraordinario: true} : t);
+}
+
 const categoriasAbertas = new Set();
 
 function mesAtual()     { return todosOsMeses[mesIdx]; }
-function txDoMes(k)     { return aplicarOverrides(ALL_TX.filter(t=>mesKey(t.data)===k)); }
+function txDoMes(k)     { return aplicarExtras(aplicarOverrides(ALL_TX.filter(t=>mesKey(t.data)===k))); }
 function recDoMes(k)    { return ALL_RECEITAS.filter(r=>r.mes===k); }
 function txMesAnterior(){ return mesIdx===0 ? null : txDoMes(todosOsMeses[mesIdx-1]); }
 
@@ -775,11 +797,14 @@ function render() {
   const k       = mesAtual();
   const txs     = txDoMes(k);
   const recs    = recDoMes(k);
-  const totalGasto   = txs.reduce((s,t)=>s+t.valor, 0);
-  const totalReceita = recs.reduce((s,r)=>s+r.valor, 0);
-  const saldo        = totalReceita - totalGasto;
-  const prev         = txMesAnterior();
-  const prevTotal    = prev ? prev.reduce((s,t)=>s+t.valor,0) : null;
+  const totalGasto       = txs.reduce((s,t)=>s+t.valor, 0);
+  const totalOrdinario   = txs.filter(t=>!t._extraordinario).reduce((s,t)=>s+t.valor, 0);
+  const totalExtraord    = txs.filter(t=>t._extraordinario).reduce((s,t)=>s+t.valor, 0);
+  const totalReceita     = recs.reduce((s,r)=>s+r.valor, 0);
+  const saldo            = totalReceita - totalGasto;
+  const saldoOrdinario   = totalReceita - totalOrdinario;
+  const prev             = txMesAnterior();
+  const prevTotal        = prev ? prev.reduce((s,t)=>s+t.valor,0) : null;
 
   // Saldo acumulado (a partir de 2026-04)
   const INICIO_ACUM = "2026-04";
@@ -792,7 +817,9 @@ function render() {
   document.getElementById("hd-saldo").textContent        = fmt(saldo);
   document.getElementById("hd-saldo").style.color        = saldo >= 0 ? "#a7f3d0" : "#fca5a5";
   document.getElementById("hd-receita").textContent      = "📈 Receitas: "+fmt(totalReceita);
-  document.getElementById("hd-gasto").textContent        = "💸 Gastos: "+fmt(totalGasto);
+  document.getElementById("hd-gasto").innerHTML          = totalExtraord > 0
+    ? `💸 Gastos: ${fmt(totalGasto)} <small style="opacity:.85">(ord: ${fmt(totalOrdinario)} · extra: ${fmt(totalExtraord)})</small>`
+    : `💸 Gastos: ${fmt(totalGasto)}`;
   document.getElementById("hd-saldo-acum").textContent   = fmt(saldoAcum);
   document.getElementById("hd-saldo-acum").style.color   = saldoAcum >= 0 ? "#a7f3d0" : "#fca5a5";
   document.getElementById("btn-prev").disabled = mesIdx===0;
@@ -801,13 +828,13 @@ function render() {
   document.getElementById("btn-prev-ano").disabled = !todosOsMeses.some(k=>parseInt(k.split("-")[0]) < anoAtual);
   document.getElementById("btn-next-ano").disabled = !todosOsMeses.some(k=>parseInt(k.split("-")[0]) > anoAtual);
 
-  renderResumo(txs, recs, totalGasto, totalReceita, saldo, prevTotal, k);
+  renderResumo(txs, recs, totalGasto, totalReceita, saldo, prevTotal, k, totalOrdinario, totalExtraord, saldoOrdinario);
   renderGastos(txs);
   renderGraficos(txs, recs, totalGasto, totalReceita);
 }
 
 // ── RESUMO ────────────────────────────────────────────────────────────────────
-function renderResumo(txs, recs, totalGasto, totalReceita, saldo, prevTotal, k) {
+function renderResumo(txs, recs, totalGasto, totalReceita, saldo, prevTotal, k, totalOrdinario, totalExtraord, saldoOrdinario) {
   const byCat = {};
   txs.forEach(t=>{ byCat[t.categoria]=(byCat[t.categoria]||0)+t.valor; });
   const catArr = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
@@ -815,6 +842,7 @@ function renderResumo(txs, recs, totalGasto, totalReceita, saldo, prevTotal, k) 
   const maxRec = recs.length ? Math.max(...recs.map(r=>r.valor)) : 1;
 
   const saldoPos = saldo >= 0;
+  const saldoOrdPos = saldoOrdinario >= 0;
 
   // Card saldo
   const saldoCard = `
@@ -822,6 +850,10 @@ function renderResumo(txs, recs, totalGasto, totalReceita, saldo, prevTotal, k) 
       <div class="saldo-info">
         <small>${saldoPos?"✅ Saldo Positivo":"⚠️ Saldo Negativo"}</small>
         <div class="saldo-val">${fmt(Math.abs(saldo))}</div>
+        ${totalExtraord > 0 ? `
+          <small style="display:block;margin-top:6px;opacity:.85">
+            Sem extraordinários: <b style="color:${saldoOrdPos?'#a7f3d0':'#fca5a5'}">${saldoOrdPos?'+':'-'}${fmt(Math.abs(saldoOrdinario))}</b>
+          </small>` : ""}
       </div>
       <div class="saldo-icon">${saldoPos?"💰":"📉"}</div>
     </div>`;
@@ -875,6 +907,11 @@ function renderResumo(txs, recs, totalGasto, totalReceita, saldo, prevTotal, k) 
       <div class="stat-card">
         <div class="stat-label">Total de Gastos</div>
         <div class="stat-val red">${totalGasto?fmt(totalGasto):"—"}</div>
+        ${totalExtraord > 0 ? `
+          <div style="margin-top:8px;padding-top:8px;border-top:1px dashed #fee2e2;font-size:11px;line-height:1.5">
+            <div style="display:flex;justify-content:space-between"><span style="color:#6b7280">Ordinário</span><b>${fmt(totalOrdinario)}</b></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:#d97706">⭐ Extraordinário</span><b style="color:#d97706">${fmt(totalExtraord)}</b></div>
+          </div>` : ""}
       </div>
     </div>
 
@@ -899,14 +936,17 @@ function renderResumo(txs, recs, totalGasto, totalReceita, saldo, prevTotal, k) 
         </div>
         ${aberta ? `<div class="cat-expanded">
           ${txsCat.map(t => `
-            <div class="cat-tx-item">
+            <div class="cat-tx-item${t._extraordinario?' tx-extra':''}">
               <div class="cat-tx-info">
-                <b>${t.descricao}</b>
-                <small>${t.estabelecimento} · ${fmtD(t.data)} · ${t.pagamento}${t._reclassificado?' · <span style="color:#6366f1">✎ reclassificado</span>':''}</small>
+                <b>${t._extraordinario?'⭐ ':''}${t.descricao}</b>
+                <small>${t.estabelecimento} · ${fmtD(t.data)} · ${t.pagamento}${t._reclassificado?' · <span style="color:#6366f1">✎ reclassificado</span>':''}${t._extraordinario?' · <span style="color:#d97706;font-weight:600">extraordinário</span>':''}</small>
               </div>
               <div class="cat-tx-right">
                 <b>${fmt(t.valor)}</b>
-                <button class="recat-btn" onclick="abrirMenuRecat(${t.id}, this)">🏷 Mover</button>
+                <div style="display:flex;gap:4px">
+                  <button class="extra-btn${t._extraordinario?' active':''}" onclick="toggleExtra(${t.id})" title="${t._extraordinario?'Desmarcar como extraordinário':'Marcar como extraordinário'}">⭐</button>
+                  <button class="recat-btn" onclick="abrirMenuRecat(${t.id}, this)">🏷 Mover</button>
+                </div>
               </div>
             </div>
           `).join("")}
