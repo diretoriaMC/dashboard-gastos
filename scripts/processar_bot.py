@@ -310,9 +310,13 @@ def adicionar_multiplas_transacoes(transacoes, mes_fatura):
 
     bloco = ",\n".join(novas_linhas)
 
+    def _insere(m):
+        g2 = m.group(2).rstrip().rstrip(",")
+        return m.group(1) + g2 + ",\n" + bloco + m.group(3)
+
     novo_html = re.sub(
         r'(// ── GASTOS ─+\nconst ALL_TX = \[)(.*?)(\n\];)',
-        lambda m: m.group(1) + m.group(2) + ",\n" + bloco + m.group(3),
+        _insere,
         html,
         flags=re.DOTALL
     )
@@ -394,9 +398,13 @@ def adicionar_transacao(tx, sem_comprovante=False):
         f'pagamento:"{tx["pagamento"]}"{grupo_str}{sem_comprovante_str} }}'
     )
 
+    def _insere(m):
+        g2 = m.group(2).rstrip().rstrip(",")
+        return m.group(1) + g2 + ",\n" + nova_linha + m.group(3)
+
     novo_html = re.sub(
         r'(// ── GASTOS ─+\nconst ALL_TX = \[)(.*?)(\n\];)',
-        lambda m: m.group(1) + m.group(2) + ",\n" + nova_linha + m.group(3),
+        _insere,
         html,
         flags=re.DOTALL
     )
@@ -428,9 +436,12 @@ def adicionar_receita(receita):
         acao = "atualizada"
     else:
         nova_linha = f'  {{ mes:"{mes}", fonte:"{fonte}", valor:{valor} }}'
+        def _insere(m):
+            g2 = m.group(2).rstrip().rstrip(",")
+            return m.group(1) + g2 + ",\n" + nova_linha + m.group(3)
         novo_html = re.sub(
             r'(const ALL_RECEITAS = \[)(.*?)(\n\];)',
-            lambda m: m.group(1) + m.group(2) + ",\n" + nova_linha + m.group(3),
+            _insere,
             html,
             flags=re.DOTALL
         )
