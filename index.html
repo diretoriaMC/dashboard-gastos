@@ -241,7 +241,6 @@ const ALL_TX = [
   { id:62, data:"2026-04-09", valor:5.59, estabelecimento:"Drogaria São Paulo", descricao:"Farmácia", categoria:"Saúde", pagamento:"Cartão", grupo:"drogaria-sao-paulo" },
   { id:63, data:"2026-04-09", valor:125.4, estabelecimento:"A Porchetta", descricao:"Restaurante", categoria:"Restaurante", pagamento:"Cartão", grupo:"a-porchetta" },
   { id:64, data:"2026-04-09", valor:257.6, estabelecimento:"A V da Cruz", descricao:"Vestuário", categoria:"Vestuário", pagamento:"Cartão", grupo:"av-da-cruz" },
-  { id:65, data:"2026-04-09", valor:15.5, estabelecimento:"Mobilidade Recife Park", descricao:"Estacionamento", categoria:"Transporte", pagamento:"Cartão", grupo:"mobilidade-recife-park" },
   { id:66, data:"2026-04-09", valor:33.0, estabelecimento:"Borelli", descricao:"Vestuário / acessórios", categoria:"Vestuário", pagamento:"Cartão", grupo:"borelli" },
   { id:67, data:"2026-04-09", valor:28.0, estabelecimento:"Borelli", descricao:"Vestuário / acessórios", categoria:"Vestuário", pagamento:"Cartão", grupo:"borelli" },
   { id:68, data:"2026-04-09", valor:107.36, estabelecimento:"São Braz L1", descricao:"Alimentação", categoria:"Alimentação", pagamento:"Cartão", grupo:"sao-braz" },
@@ -516,9 +515,7 @@ const ALL_TX = [
   { id:337, data:"2026-05-01", valor:146.3, estabelecimento:"GRUPO MADERO", descricao:"Despesa", categoria:"Restaurante", pagamento:"Cartão" },
   { id:338, data:"2026-05-01", valor:93.97, estabelecimento:"EMPORIO MURO ALTO", descricao:"Despesa", categoria:"Alimentação", pagamento:"Cartão", grupo:"emporio-muro-alto" },
   { id:339, data:"2026-05-01", valor:9.9, estabelecimento:"PAGUE MENOSA 09", descricao:"Despesa", categoria:"Compras Online", pagamento:"Cartão" },
-  { id:340, data:"2026-05-01", valor:5.99, estabelecimento:"EMPORIO MURO ALTO", descricao:"Despesa", categoria:"Alimentação", pagamento:"Cartão", grupo:"emporio-muro-alto" },
   { id:341, data:"2026-05-01", valor:19.0, estabelecimento:"MR PRETZELS", descricao:"Despesa", categoria:"Alimentação", pagamento:"Cartão" },
-  { id:342, data:"2026-05-01", valor:15.5, estabelecimento:"MOBILIDADE RECIFE PARK", descricao:"Despesa", categoria:"Transporte", pagamento:"Cartão", grupo:"mobilidade-recife-park" },
   { id:343, data:"2026-05-01", valor:131.47, estabelecimento:"MUNDO DO CABELEIREIRO", descricao:"Despesa", categoria:"Beleza", pagamento:"Cartão" },
   { id:344, data:"2026-05-01", valor:16.5, estabelecimento:"CAFE DO PAIVA LTDA", descricao:"Despesa", categoria:"Restaurante", pagamento:"Cartão", grupo:"cafe-paiva" },
   { id:345, data:"2026-05-01", valor:105.38, estabelecimento:"ZYMICOMERCIODEALI", descricao:"Despesa", categoria:"Alimentação", pagamento:"Cartão", grupo:"zymica-comercio-ali" },
@@ -530,7 +527,6 @@ const ALL_TX = [
   { id:351, data:"2026-05-01", valor:60.31, estabelecimento:"DROGASIL 2898", descricao:"Despesa", categoria:"Saúde", pagamento:"Cartão", grupo:"drogasil" },
   { id:352, data:"2026-05-01", valor:41.45, estabelecimento:"EMPORIO MURO ALTO", descricao:"Despesa", categoria:"Alimentação", pagamento:"Cartão", grupo:"emporio-muro-alto" },
   { id:353, data:"2026-05-01", valor:4.39, estabelecimento:"CAFE DO PAIVA LTDA", descricao:"Despesa", categoria:"Restaurante", pagamento:"Cartão", grupo:"cafe-paiva" },
-  { id:354, data:"2026-05-01", valor:15.5, estabelecimento:"MOBILIDADE RECIFE PARK", descricao:"Despesa", categoria:"Transporte", pagamento:"Cartão", grupo:"mobilidade-recife-park" },
   { id:355, data:"2026-05-01", valor:80.0, estabelecimento:"SEPHORA RIOMAR 2451", descricao:"Despesa", categoria:"Beleza", pagamento:"Cartão" },
   { id:356, data:"2026-05-01", valor:20.0, estabelecimento:"ESPETINHO DO MERENGUE", descricao:"Despesa", categoria:"Restaurante", pagamento:"Cartão" },
   { id:357, data:"2026-05-01", valor:23.98, estabelecimento:"DONNA BRIGADEIRO", descricao:"Despesa", categoria:"Alimentação", pagamento:"Cartão" },
@@ -599,13 +595,14 @@ const ALL_TX = [
   { id:420, data:"2026-05-20", valor:146.79, estabelecimento:"CASA DOS DOCES", descricao:"Transferência Pix para Casa dos Doces", categoria:"Alimentação", pagamento:"Pix", grupo:"casa-dos-doces" },
   { id:421, data:"2026-05-22", valor:12.0, estabelecimento:"Igor Silva do Nascimento", descricao:"Transferência Pix para pessoa física", categoria:"Alimentação", pagamento:"Pix" },
   { id:422, data:"2026-05-25", valor:109.37, estabelecimento:"Pernambuco Tribunal de Justica", descricao:"Guia Sicase - Emolumentos e taxas judiciais", categoria:"Impostos", pagamento:"Pix", grupo:"tribunal-justica-pe" }
+
 ];
 
 // ── RECEITAS ──────────────────────────────────────────────────────────────────
 // Fonte: Receitas.txt — atualizar manualmente a cada mês
 const ALL_RECEITAS = [
   { mes:"2026-04", fonte:"Lavanderia", valor:35801.70 },
-  { mes:"2026-04", fonte:"Pousada",    valor:25000.00 },,
+  { mes:"2026-04", fonte:"Pousada",    valor:25000.00 },
   { mes:"2026-05", fonte:"Lavanderia", valor:27964.2 },
   { mes:"2026-05", fonte:"Pousada", valor:5000.0 },
   { mes:"2026-05", fonte:"Reembolso Anthropic", valor:660.0 }
@@ -736,7 +733,7 @@ function renderResumo(txs, recs, totalGasto, totalReceita, saldo, prevTotal, k) 
   const byCat = {};
   txs.forEach(t=>{ byCat[t.categoria]=(byCat[t.categoria]||0)+t.valor; });
   const catArr = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
-  const top5   = [...txs].sort((a,b)=>b.valor-a.valor).slice(0,5);
+  const todosOrdenados = [...txs].sort((a,b)=>b.valor-a.valor);
   const maxRec = recs.length ? Math.max(...recs.map(r=>r.valor)) : 1;
 
   const saldoPos = saldo >= 0;
@@ -820,11 +817,11 @@ function renderResumo(txs, recs, totalGasto, totalReceita, saldo, prevTotal, k) 
     </div>
 
     <div class="card">
-      <h2>🏆 Maiores Gastos</h2>
-      ${top5.map((t,i)=>`
+      <h2>💸 Todos os Gastos do Mês (${todosOrdenados.length})</h2>
+      ${todosOrdenados.map((t,i)=>`
         <div class="top-item">
           <div class="top-rank">#${i+1}</div>
-          <div class="top-info"><b>${t.descricao}</b><small>${fmtD(t.data)} · ${t.pagamento}</small></div>
+          <div class="top-info"><b>${t.descricao}</b><small>${t.estabelecimento} · ${fmtD(t.data)} · ${t.pagamento}</small></div>
           <div class="top-val">${fmt(t.valor)}</div>
         </div>`).join("")||'<p class="empty">Sem dados</p>'}
     </div>
