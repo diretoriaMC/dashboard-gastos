@@ -79,6 +79,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .bar-fill{height:8px;border-radius:99px}
 .bar-pct{text-align:right;font-size:11px;color:#9ca3af;margin-top:3px}
 
+/* CATEGORIA EXPANDÍVEL */
+.cat-clickable{cursor:pointer;padding:6px 8px;border-radius:8px;transition:background .15s}
+.cat-clickable:hover{background:#f8fafc}
+.cat-expanded{margin:-6px 0 14px 0;padding:8px 10px;background:#f8fafc;border-radius:10px;border-left:3px solid #e2e8f0}
+.cat-tx-item{display:flex;align-items:center;gap:10px;padding:8px 10px;background:white;border-radius:10px;margin-bottom:6px;border:1px solid #f1f5f9}
+.cat-tx-info{flex:1;overflow:hidden;min-width:0}
+.cat-tx-info b{font-size:12px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cat-tx-info small{font-size:10.5px;color:#94a3b8;display:block}
+.cat-tx-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;position:relative}
+.cat-tx-right b{font-size:12.5px;font-weight:700}
+
+/* BOTÃO RECATEGORIZAR */
+.recat-btn{font-size:10.5px;padding:3px 8px;border-radius:14px;border:1px solid #c7d2fe;background:#eef2ff;color:#4338ca;cursor:pointer;font-weight:600;white-space:nowrap}
+.recat-btn:hover{background:#e0e7ff}
+.recat-menu{position:absolute;top:100%;right:0;margin-top:6px;background:white;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:6px;z-index:100;min-width:180px;max-height:320px;overflow-y:auto}
+.recat-header{font-size:11px;font-weight:600;color:#6b7280;padding:6px 10px 8px;border-bottom:1px solid #f3f4f6;margin-bottom:4px}
+.recat-opt{padding:7px 10px;font-size:12.5px;border-radius:7px;cursor:pointer;transition:background .15s}
+.recat-opt:hover{background:#f3f4f6}
+.recat-clear{border-top:1px solid #f3f4f6;margin-top:4px;padding-top:8px;color:#6366f1;font-weight:500}
+
 /* TOP 5 */
 .top-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:12px;background:#f9fafb;margin-bottom:7px}
 .top-rank{font-size:13px;font-weight:800;color:#d1d5db;width:22px;flex-shrink:0}
@@ -674,10 +694,68 @@ function navAno(dir) {
   expandidos.clear();
   render();
 }
+// ── RECLASSIFICAÇÃO MANUAL (localStorage) ─────────────────────────────────────
+function getOverrides() {
+  try { return JSON.parse(localStorage.getItem("cat_overrides") || "{}"); }
+  catch { return {}; }
+}
+function setOverride(id, novaCat) {
+  const o = getOverrides();
+  o[id] = novaCat;
+  localStorage.setItem("cat_overrides", JSON.stringify(o));
+}
+function removerOverride(id) {
+  const o = getOverrides();
+  delete o[id];
+  localStorage.setItem("cat_overrides", JSON.stringify(o));
+}
+function aplicarOverrides(txs) {
+  const o = getOverrides();
+  return txs.map(t => o[t.id] ? {...t, categoria: o[t.id], _reclassificado: true} : t);
+}
+
+const categoriasAbertas = new Set();
+
 function mesAtual()     { return todosOsMeses[mesIdx]; }
-function txDoMes(k)     { return ALL_TX.filter(t=>mesKey(t.data)===k); }
+function txDoMes(k)     { return aplicarOverrides(ALL_TX.filter(t=>mesKey(t.data)===k)); }
 function recDoMes(k)    { return ALL_RECEITAS.filter(r=>r.mes===k); }
 function txMesAnterior(){ return mesIdx===0 ? null : txDoMes(todosOsMeses[mesIdx-1]); }
+
+// ── Handlers de reclassificação ──────────────────────────────────────────────
+function toggleCatExp(cat) {
+  if (categoriasAbertas.has(cat)) categoriasAbertas.delete(cat);
+  else categoriasAbertas.add(cat);
+  render();
+}
+function abrirMenuRecat(id, btn) {
+  const ev = window.event;
+  if (ev) ev.stopPropagation();
+  // Remove menu já aberto
+  document.querySelectorAll(".recat-menu").forEach(m => m.remove());
+  const cats = Object.keys(CATS);
+  const menu = document.createElement("div");
+  menu.className = "recat-menu";
+  menu.innerHTML = `
+    <div class="recat-header">Mover para categoria:</div>
+    ${cats.map(c => `<div class="recat-opt" onclick="aplicarRecat(${id},'${c}')">${CATS[c].icone} ${c}</div>`).join("")}
+    <div class="recat-opt recat-clear" onclick="aplicarRecat(${id},null)">↺ Reverter classificação original</div>
+  `;
+  btn.parentNode.appendChild(menu);
+  // Fechar ao clicar fora
+  setTimeout(() => {
+    document.addEventListener("click", function fechar(e) {
+      if (!menu.contains(e.target)) {
+        menu.remove();
+        document.removeEventListener("click", fechar);
+      }
+    });
+  }, 50);
+}
+function aplicarRecat(id, novaCat) {
+  if (novaCat === null) removerOverride(id);
+  else setOverride(id, novaCat);
+  render();
+}
 
 // ── AGRUPAMENTO ───────────────────────────────────────────────────────────────
 function agrupar(txs) {
@@ -706,7 +784,7 @@ function render() {
   // Saldo acumulado (a partir de 2026-04)
   const INICIO_ACUM = "2026-04";
   const acumReceita = ALL_RECEITAS.filter(r => r.mes >= INICIO_ACUM && r.mes <= k).reduce((s,r)=>s+r.valor, 0);
-  const acumGasto   = ALL_TX.filter(t => mesKey(t.data) >= INICIO_ACUM && mesKey(t.data) <= k).reduce((s,t)=>s+t.valor, 0);
+  const acumGasto   = aplicarOverrides(ALL_TX).filter(t => mesKey(t.data) >= INICIO_ACUM && mesKey(t.data) <= k).reduce((s,t)=>s+t.valor, 0);
   const saldoAcum   = acumReceita - acumGasto;
 
   // Header
@@ -808,11 +886,31 @@ function renderResumo(txs, recs, totalGasto, totalReceita, saldo, prevTotal, k) 
         const pct=(value/totalGasto*100).toFixed(1);
         const cor=CATS[name]?.cor||"#6b7280";
         const ico=CATS[name]?.icone||"📦";
-        return `<div class="bar-row">
-          <div class="bar-row-top"><span>${ico} ${name}</span><span>${fmt(value)}</span></div>
+        const aberta = categoriasAbertas.has(name);
+        const txsCat = txs.filter(t=>t.categoria===name).sort((a,b)=>b.valor-a.valor);
+        return `
+        <div class="bar-row cat-clickable" onclick="toggleCatExp('${name.replace(/'/g,"\\'")}')">
+          <div class="bar-row-top">
+            <span>${aberta?"▼":"▶"} ${ico} ${name} <small style="color:#94a3b8;font-weight:500">(${txsCat.length})</small></span>
+            <span>${fmt(value)}</span>
+          </div>
           <div class="bar-bg"><div class="bar-fill" style="width:${pct}%;background:${cor}"></div></div>
           <div class="bar-pct">${pct}%</div>
-        </div>`;
+        </div>
+        ${aberta ? `<div class="cat-expanded">
+          ${txsCat.map(t => `
+            <div class="cat-tx-item">
+              <div class="cat-tx-info">
+                <b>${t.descricao}</b>
+                <small>${t.estabelecimento} · ${fmtD(t.data)} · ${t.pagamento}${t._reclassificado?' · <span style="color:#6366f1">✎ reclassificado</span>':''}</small>
+              </div>
+              <div class="cat-tx-right">
+                <b>${fmt(t.valor)}</b>
+                <button class="recat-btn" onclick="abrirMenuRecat(${t.id}, this)">🏷 Mover</button>
+              </div>
+            </div>
+          `).join("")}
+        </div>` : ""}`;
       }).join("")||'<p class="empty">Sem gastos registrados</p>'}
     </div>
 
