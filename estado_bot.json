@@ -1,5 +1,16 @@
 {
-  "offset": 760343408,
-  "ultima_verificacao_saldo": "2026-05-25",
-  "aguardando_contexto": null
+  "offset": 760343409,
+  "ultima_verificacao_saldo": "2026-05-26",
+  "aguardando_contexto": {
+    "texto_comprovante": "Comprovante de transfer\u00eancia\nRealizada em 26 mai 2026 \u00e0s 16:42:29\nValor Tipo\nR$ 50,00 Pix | Qr Code\nDADOS DE DESTINO\nNome CNPJ\nROTA PETROLEO 21.511.490/0001-60\nInstitui\u00e7\u00e3o\nITA\u00da UNIBANCO S.A.\nDADOS DE ORIGEM\nNome CNPJ\nLAVE & LEVE 54.837.209/0001-33\nInstitui\u00e7\u00e3o Ag\u00eancia Conta\nSTONE INSTITUI\u00c7\u00c3O DE PAGAMENTO S.A. 0001 28235497-6\nINFORMA\u00c7\u00d5ES ADICIONAIS\nIdentificador\nLINX0008DEBB5EE1469BB1X139088B85520\nID da transa\u00e7\u00e3o C\u00f3digo da autentica\u00e7\u00e3o\nE1650155520260526194279555ab7a1d 79a3e652-f5ee-43b4-9b50-efe1a8dd0275\nD\u00favidas? Acesse nossa Central de ajuda. Stone Institui\u00e7\u00e3o de Pagamento S.A.\nCNPJ 16.501.555/0001-57\nRegi\u00f5es Metropolitanas Outras Regi\u00f5es Ouvidoria\n3004-9680 0800 326 0506 0800 942 2174 Atendimento em dias \u00fateis, das 09h \u00e0s 18h (hor\u00e1rio de Bras\u00edlia). Voc\u00ea\ntamb\u00e9m, pode enviar um e-mail para ouvidoria@stone.com.br.",
+    "dados_parciais": {
+      "data": "26/05/2026",
+      "valor": 50.0,
+      "estabelecimento": "ROTA PETROLEO",
+      "descricao": "Transfer\u00eancia Pix para ROTA PETROLEO",
+      "categoria": "Outros",
+      "pagamento": "Pix",
+      "grupo": "rota-petroleo"
+    }
+  }
 }
