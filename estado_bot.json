@@ -1,16 +1,5 @@
 {
-  "offset": 760343420,
+  "offset": 760343424,
   "ultima_verificacao_saldo": "2026-06-01",
-  "aguardando_contexto": {
-    "texto_comprovante": "Comprovante do Pix\n01/06/2026 - 11:48:33\nValor pago\nR$ 800,00\nForma de pagamento\nAg 1667 Cc 1003583-4\nDados do recebedor\nPara\nLeonardo Francisco Valadares Maia Cavalcanti\nCPF\n***.881.044-**\nChave\n4926ee0c-20af-46b2-94dd-5f49a0824646\nInstitui\u00e7\u00e3o\nBCO DO BRASIL S.A.\nDados do pagador\nDe\nLeonardo Francisco Valadares Maia Cavalcanti\nCPF\n***.881.044-**\nInstitui\u00e7\u00e3o\nBCO SANTANDER (BRASIL) S.A.\nID/Transa\u00e7\u00e3o\nE9040088820260601144862665476801\nData e hora da transa\u00e7\u00e3o\n01/06/2026 - 11:48:33\nC\u00f3digo de autentica\u00e7\u00e3o\nBD2E64B852ADCD271770880\nComprovante do Pix 1/2\nCentral de Atendimento Santander\n4004-3535 (Capitais e Regi\u00f5es Metropolitanas)\n0800-702-3535 (Demais Localidades)\nSAC 0800-762-7777\nOuvidoria 0800-726-0332\nComprovante do Pix 2/2",
-    "dados_parciais": {
-      "data": "01/06/2026",
-      "valor": 800.0,
-      "estabelecimento": "Leonardo Francisco Valadares Maia Cavalcanti",
-      "descricao": "Transfer\u00eancia Pix",
-      "categoria": "Outros",
-      "pagamento": "Pix",
-      "grupo": "transferencia-pix"
-    }
-  }
+  "aguardando_contexto": null
 }
