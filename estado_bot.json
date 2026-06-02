@@ -1,5 +1,16 @@
 {
-  "offset": 760343424,
-  "ultima_verificacao_saldo": "2026-06-01",
-  "aguardando_contexto": null
+  "offset": 760343425,
+  "ultima_verificacao_saldo": "2026-06-02",
+  "aguardando_contexto": {
+    "texto_comprovante": "",
+    "dados_parciais": {
+      "data": "02/06/2026",
+      "valor": 0.0,
+      "estabelecimento": "",
+      "descricao": "",
+      "categoria": "Outros",
+      "pagamento": "Pix",
+      "grupo": ""
+    }
+  }
 }
