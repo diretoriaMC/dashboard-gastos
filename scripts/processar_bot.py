@@ -89,7 +89,7 @@ def extrair_texto(file_bytes, file_path):
 def extrair_dados_com_ia(texto, file_bytes=None, file_path="", contexto=""):
     """Usa Claude para extrair dados estruturados do comprovante."""
     import anthropic
-    client = anthropic.Anthropic(api_key=ANTHROPIC_KEY)
+    client = anthropic.Anthropic(api_key=ANTHROPIC_KEY, timeout=90.0)
 
     hoje = datetime.now().strftime("%d/%m/%Y")
     ext  = Path(file_path).suffix.lower() if file_path else ""
@@ -131,6 +131,8 @@ Regras:
 - grupo em kebab-case, apenas para estabelecimentos recorrentes (ex: "supermercado-soberano")
 - Se for compra no cartão de crédito, pagamento = "Cartão"
 - parcela: formato "X/N" APENAS se o comprovante indicar parcelamento (ex: "Parcela 2/6", "2/6", "em 6x"). Se for à vista ou sem indicação, OMITA o campo
+- ESTABELECIMENTO = quem RECEBEU o pagamento. Em comprovantes bancários, é o "Favorecido", "Beneficiário", "Destinatário", "Para" ou "Recebedor". NUNCA é o "Pagador", "Remetente", "Dados de origem" ou "De" (esses são quem enviou o dinheiro, deve ser ignorado)
+- Se o comprovante tem seções "DADOS DE ORIGEM" (pagador) e "DADOS DO DOCUMENTO" ou "DESTINATÁRIO" (favorecido), use SEMPRE o favorecido como estabelecimento
 - Se o estabelecimento for nome de pessoa física sem descrição clara, ou se não conseguir identificar a categoria com segurança, coloque precisa_confirmacao: true
 - Responda SOMENTE o JSON, sem texto antes ou depois"""
 
@@ -149,7 +151,7 @@ Regras:
 def extrair_receitas_com_ia(texto_msg):
     """Usa Claude para extrair receitas de uma mensagem de texto livre."""
     import anthropic
-    client = anthropic.Anthropic(api_key=ANTHROPIC_KEY)
+    client = anthropic.Anthropic(api_key=ANTHROPIC_KEY, timeout=90.0)
 
     ano_atual = datetime.now().year
 
@@ -214,7 +216,7 @@ def eh_fatura(texto, legenda=""):
 def extrair_fatura_com_ia(texto, file_bytes=None, file_path=""):
     """Usa Claude para extrair todas as transações de uma fatura de cartão."""
     import anthropic
-    client = anthropic.Anthropic(api_key=ANTHROPIC_KEY)
+    client = anthropic.Anthropic(api_key=ANTHROPIC_KEY, timeout=90.0)
 
     ext = Path(file_path).suffix.lower() if file_path else ""
     content = []
@@ -334,7 +336,7 @@ def adicionar_multiplas_transacoes(transacoes, mes_fatura):
 def extrair_despesa_sem_nota_com_ia(texto_msg):
     """Usa Claude para extrair despesa sem comprovante de uma mensagem de texto livre."""
     import anthropic
-    client = anthropic.Anthropic(api_key=ANTHROPIC_KEY)
+    client = anthropic.Anthropic(api_key=ANTHROPIC_KEY, timeout=90.0)
 
     hoje = datetime.now().strftime("%d/%m/%Y")
     ano_atual = datetime.now().year
@@ -540,7 +542,7 @@ def verificar_lembretes():
 # ── Contas fixas: Claude parseia texto livre ───────────────────────────────────
 def extrair_conta_fixa_com_ia(texto_msg):
     import anthropic
-    client = anthropic.Anthropic(api_key=ANTHROPIC_KEY)
+    client = anthropic.Anthropic(api_key=ANTHROPIC_KEY, timeout=90.0)
 
     prompt = f"""O usuário quer cadastrar uma conta fixa mensal.
 
@@ -567,7 +569,7 @@ Regras:
 
 def identificar_conta_paga_com_ia(texto_msg, contas):
     import anthropic
-    client = anthropic.Anthropic(api_key=ANTHROPIC_KEY)
+    client = anthropic.Anthropic(api_key=ANTHROPIC_KEY, timeout=90.0)
 
     lista = "\n".join(f"- {c['descricao']}" for c in contas)
     prompt = f"""O usuário disse que pagou uma conta. Identifique qual conta da lista ele se refere.
