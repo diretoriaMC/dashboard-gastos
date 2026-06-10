@@ -1,5 +1,15 @@
 {
-  "offset": 760343456,
-  "ultima_verificacao_saldo": "2026-06-09",
-  "aguardando_contexto": null
+  "offset": 760343457,
+  "ultima_verificacao_saldo": "2026-06-10",
+  "aguardando_contexto": {
+    "texto_comprovante": "Comprovante de transfer\u00eancia\nRealizada em 09 jun 2026 \u00e0s 22:16:16\nValor Tipo\nR$ 1.000,00 Pix | Transfer\u00eancia\nDADOS DE DESTINO\nNome CPF\nMaria Karolina Araujo Souza Silva ***.421.174-**\nInstitui\u00e7\u00e3o\nNU PAGAMENTOS S.A. - INSTITUI\u00c7\u00c3O DE\nPAGAMENTO\nDADOS DE ORIGEM\nNome CNPJ\nLAVE & LEVE 54.837.209/0001-33\nInstitui\u00e7\u00e3o Ag\u00eancia Conta\nSTONE INSTITUI\u00c7\u00c3O DE PAGAMENTO S.A. 0001 28235497-6\nINFORMA\u00c7\u00d5ES ADICIONAIS\nID da transa\u00e7\u00e3o C\u00f3digo da autentica\u00e7\u00e3o\nE16501555202606100115ef39a4d1af8 72d4a116-e288-4657-aa48-af850dfd8a0a\nD\u00favidas? Acesse nossa Central de ajuda. Stone Institui\u00e7\u00e3o de Pagamento S.A.\nCNPJ 16.501.555/0001-57\nRegi\u00f5es Metropolitanas Outras Regi\u00f5es Ouvidoria\n3004-9680 0800 326 0506 0800 942 2174 Atendimento em dias \u00fateis, das 09h \u00e0s 18h (hor\u00e1rio de Bras\u00edlia). Voc\u00ea\ntamb\u00e9m, pode enviar um e-mail para ouvidoria@stone.com.br.",
+    "dados_parciais": {
+      "data": "09/06/2026",
+      "valor": 1000.0,
+      "estabelecimento": "Maria Karolina Araujo Souza Silva",
+      "descricao": "Transfer\u00eancia Pix",
+      "categoria": "Outros",
+      "pagamento": "Pix"
+    }
+  }
 }
