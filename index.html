@@ -151,6 +151,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 /* STATUS DE SINCRONIZAÇÃO */
 #sync-status{position:fixed;bottom:16px;right:16px;background:rgba(30,41,59,.92);color:#fff;font-size:12px;font-weight:600;padding:8px 14px;border-radius:20px;z-index:2000;box-shadow:0 4px 16px rgba(0,0,0,.25);transition:opacity .4s;pointer-events:none}
 
+/* GERENCIAR CATEGORIAS */
+.gc-sec-title{font-size:13px;font-weight:700;color:#374151;margin-bottom:10px}
+.gc-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.gc-chip{display:inline-flex;align-items:center;gap:4px;font-size:12.5px;font-weight:500;color:#374151;background:#fff;border:1.5px solid #e5e7eb;border-radius:14px;padding:4px 10px}
+.gc-del{background:none;border:none;color:#9ca3af;font-size:15px;line-height:1;cursor:pointer;padding:0 0 0 2px;font-weight:700}
+.gc-del:hover{color:#ef4444}
+.gc-form{display:flex;gap:6px;align-items:center;margin-bottom:8px}
+.gc-form input[type=text]{flex:1;padding:8px 10px;font-size:13px;border:1px solid #e2e8f0;border-radius:8px;box-sizing:border-box}
+.gc-form input[type=text]:nth-of-type(2){flex:0 0 56px;text-align:center}
+.gc-form input:focus{outline:none;border-color:#6366f1;box-shadow:0 0 0 2px #c7d2fe}
+.gc-form .btn-criar{flex:0 0 auto;padding:8px 14px}
+
 /* TOP 5 */
 .top-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:12px;background:#f9fafb;margin-bottom:7px}
 .top-rank{font-size:13px;font-weight:800;color:#d1d5db;width:22px;flex-shrink:0}
@@ -876,7 +888,7 @@ const MES_HOJE = mesKey(new Date().toISOString());
 // Estado dos ajustes manuais (carregado da planilha em carregarAjustes()).
 // Declarado aqui no topo porque calcMeses()/txEfetivas() usam logo abaixo.
 let AJUSTES = {
-  cat_overrides: {}, extraordinarios: [], cats_custom: {},
+  cat_overrides: {}, extraordinarios: [], cats_custom: {}, negocios_custom: {},
   tx_deletados: [], tx_editados: {}, tx_adicionados: [],
   rec_deletados: [], rec_editados: {}, rec_adicionados: []
 };
@@ -935,6 +947,7 @@ function _mergeAjustes(data) {
     cat_overrides:   data.cat_overrides   || {},
     extraordinarios: data.extraordinarios || [],
     cats_custom:     data.cats_custom     || {},
+    negocios_custom: data.negocios_custom || {},
     tx_deletados:    data.tx_deletados    || [],
     tx_editados:     data.tx_editados     || {},
     tx_adicionados:  data.tx_adicionados  || [],
@@ -1033,6 +1046,27 @@ function criarCategoria(nome, icone) {
 }
 function removerCatCustom(nome) {
   delete AJUSTES.cats_custom[nome];
+  salvarAjustes();
+}
+
+// ── FONTES DE RECEITA CUSTOMIZADAS ────────────────────────────────────────────
+const PALETA_NEG = ["#0ea5e9","#f59e0b","#10b981","#8b5cf6","#ec4899","#ef4444","#14b8a6","#f97316","#6366f1","#84cc16","#06b6d4","#d946ef"];
+function getNegociosCustom() { return AJUSTES.negocios_custom; }
+function getAllNegocios() { return {...NEGOCIOS, ...getNegociosCustom()}; }
+function getNegocioConfig(fonte) { return getAllNegocios()[fonte] || {cor:"#6b7280", icone:"💼"}; }
+function criarNegocio(nome, icone) {
+  nome = (nome || "").trim();
+  if (!nome) return null;
+  const todas = getAllNegocios();
+  if (todas[nome]) return todas[nome];
+  const usadas = Object.values(todas).map(x => x.cor);
+  const cor = PALETA_NEG.find(p => !usadas.includes(p)) || PALETA_NEG[Math.floor(Math.random()*PALETA_NEG.length)];
+  AJUSTES.negocios_custom[nome] = {cor, icone: icone || "💼"};
+  salvarAjustes();
+  return AJUSTES.negocios_custom[nome];
+}
+function removerNegocioCustom(nome) {
+  delete AJUSTES.negocios_custom[nome];
   salvarAjustes();
 }
 
@@ -1184,7 +1218,8 @@ function abrirModalReceita(h){
   const novo = (h==null);
   const r = novo ? null : recEfetivas().find(x=>x._h===h);
   const mesVal = r ? r.mes : mesAtual();
-  const fontes = [...new Set([...Object.keys(NEGOCIOS), ...ALL_RECEITAS.map(x=>x.fonte), ...getRecAdicionados().map(x=>x.fonte)])];
+  const fontes = [...new Set([...Object.keys(getAllNegocios()), ...ALL_RECEITAS.map(x=>x.fonte), ...getRecAdicionados().map(x=>x.fonte)])];
+  const emojiAtual = r ? getNegocioConfig(r.fonte).icone : "💼";
   const ov = document.createElement("div");
   ov.className = "modal-overlay";
   ov.onclick = e => { if(e.target===ov) fecharModal(); };
@@ -1195,6 +1230,7 @@ function abrirModalReceita(h){
       <label>Fonte<input type="text" id="r-fonte" list="fontes-list" value="${r?escAttr(r.fonte):''}" placeholder="Ex: Lavanderia">
         <datalist id="fontes-list">${fontes.map(f=>`<option value="${escAttr(f)}">`).join("")}</datalist>
       </label>
+      <label>Emoji da fonte (se for nova)<input type="text" id="r-emoji" maxlength="4" value="${escAttr(emojiAtual)}" style="width:70px;text-align:center"></label>
       <label>Valor (R$)<input type="number" step="0.01" min="0" id="r-valor" value="${r?r.valor:''}" placeholder="0,00"></label>
       <div class="modal-btns">
         <button class="btn-salvar" onclick="salvarReceita(${novo?'null':`'${h.replace(/'/g,"\\'")}'`})">Salvar</button>
@@ -1207,8 +1243,11 @@ function abrirModalReceita(h){
 function salvarReceita(h){
   const mes   = document.getElementById("r-mes").value;
   const fonte = document.getElementById("r-fonte").value.trim();
+  const emoji = document.getElementById("r-emoji").value.trim();
   const valor = parseFloat(document.getElementById("r-valor").value);
   if(!mes || !fonte || isNaN(valor) || valor<=0){ alert("Preencha mês, fonte e um valor válido."); return; }
+  // Se a fonte ainda não existe, cria com o emoji escolhido
+  if(!getAllNegocios()[fonte]) criarNegocio(fonte, emoji || "💼");
   if(h==null){
     const add = getRecAdicionados();
     add.push({mes, fonte, valor, _addid: Date.now()});
@@ -1275,11 +1314,10 @@ function aplicarRecat(id, novaCat) {
 }
 function removerCatCustomConfirm(nome, btn) {
   if (!confirm(`Apagar a categoria "${nome}"?\n\nGastos atualmente nessa categoria vão voltar à classificação original.`)) return;
-  // Remove overrides apontando pra essa categoria
-  const o = getOverrides();
+  // Remove reclassificações que apontam pra essa categoria
+  const o = AJUSTES.cat_overrides;
   Object.keys(o).forEach(k => { if (o[k] === nome) delete o[k]; });
-  localStorage.setItem("cat_overrides", JSON.stringify(o));
-  removerCatCustom(nome);
+  removerCatCustom(nome); // já chama salvarAjustes()
   document.querySelectorAll(".recat-menu").forEach(m => m.remove());
   render();
 }
@@ -1310,6 +1348,80 @@ function criarECat(id) {
   setOverride(id, nome);
   document.querySelectorAll(".recat-menu").forEach(m => m.remove());
   render();
+}
+
+// ── PAINEL: GERENCIAR CATEGORIAS (gastos e receitas) ─────────────────────────
+const EMOJIS_PICKER = ["🍽️","🍕","🚗","💊","🏠","🛋️","🎉","🛍️","🛒","👕","💅","🔧","📺","🎓","✈️","🧾","🤝","💼","👔","🏨","🍦","🐕","🐱","🎮","🎬","🎵","📚","☕","🎁","🏋️","⚽","🎨","🛠️","💡","📱","⛽","💝","🏆","🎂","👶","🌿","🛏️","🔑","🚀","🥗","💰","📈","🏦","🌟","🐾"];
+function gridEmojis(inputId){
+  return `<div class="emoji-grid">${EMOJIS_PICKER.map(e=>`<span class="emoji-pick" onclick="document.getElementById('${inputId}').value='${e}'">${e}</span>`).join("")}</div>`;
+}
+function abrirModalCategorias(){
+  if(window.event) window.event.stopPropagation();
+  const custCat = getCatsCustom();
+  const custNeg = getNegociosCustom();
+  const cats = Object.keys(getAllCats());
+  const negs = Object.keys(getAllNegocios());
+  const ov = document.createElement("div");
+  ov.className = "modal-overlay";
+  ov.onclick = e => { if(e.target===ov) fecharModal(); };
+  ov.innerHTML = `
+    <div class="modal">
+      <div class="modal-head">🏷️ Gerenciar categorias</div>
+
+      <div class="gc-sec-title">💸 Categorias de gasto</div>
+      <div class="gc-chips">
+        ${cats.map(c=>{ const cfg=getCatConfig(c); const isC=!!custCat[c];
+          return `<span class="gc-chip" style="border-color:${cfg.cor}">${cfg.icone} ${c}${isC?`<button class="gc-del" onclick="apagarCatGerenciar('${c.replace(/'/g,"\\'")}')">×</button>`:''}</span>`;
+        }).join("")}
+      </div>
+      <div class="gc-form">
+        <input type="text" id="gc-cat-nome" placeholder="Nova categoria de gasto" maxlength="30">
+        <input type="text" id="gc-cat-emoji" value="📦" maxlength="4">
+        <button class="btn-criar" onclick="adicionarCatGerenciar()">Adicionar</button>
+      </div>
+      ${gridEmojis('gc-cat-emoji')}
+
+      <div class="gc-sec-title" style="margin-top:20px">📈 Fontes de receita</div>
+      <div class="gc-chips">
+        ${negs.map(n=>{ const cfg=getNegocioConfig(n); const isC=!!custNeg[n];
+          return `<span class="gc-chip" style="border-color:${cfg.cor}">${cfg.icone} ${n}${isC?`<button class="gc-del" onclick="apagarNegGerenciar('${n.replace(/'/g,"\\'")}')">×</button>`:''}</span>`;
+        }).join("")}
+      </div>
+      <div class="gc-form">
+        <input type="text" id="gc-neg-nome" placeholder="Nova fonte de receita" maxlength="30">
+        <input type="text" id="gc-neg-emoji" value="💼" maxlength="4">
+        <button class="btn-criar" onclick="adicionarNegGerenciar()">Adicionar</button>
+      </div>
+      ${gridEmojis('gc-neg-emoji')}
+
+      <div class="modal-btns"><button class="btn-cancel" onclick="fecharModal()" style="flex:1">Fechar</button></div>
+    </div>`;
+  document.body.appendChild(ov);
+}
+function adicionarCatGerenciar(){
+  const nome=document.getElementById('gc-cat-nome').value.trim();
+  const emoji=document.getElementById('gc-cat-emoji').value.trim()||"📦";
+  if(!nome){ alert("Digite o nome da categoria."); return; }
+  criarCategoria(nome, emoji);
+  fecharModal(); abrirModalCategorias(); render();
+}
+function apagarCatGerenciar(nome){
+  if(!confirm(`Apagar a categoria "${nome}"?\nGastos nela voltam à classificação original.`)) return;
+  const o=AJUSTES.cat_overrides; Object.keys(o).forEach(k=>{ if(o[k]===nome) delete o[k]; });
+  removerCatCustom(nome);
+  fecharModal(); abrirModalCategorias(); render();
+}
+function adicionarNegGerenciar(){
+  const nome=document.getElementById('gc-neg-nome').value.trim();
+  const emoji=document.getElementById('gc-neg-emoji').value.trim()||"💼";
+  if(!nome){ alert("Digite o nome da fonte."); return; }
+  criarNegocio(nome, emoji);
+  fecharModal(); abrirModalCategorias(); render();
+}
+function apagarNegGerenciar(nome){
+  if(!confirm(`Apagar a fonte de receita "${nome}"?\nAs receitas dela continuam, só perdem o ícone personalizado.`)) return;
+  removerNegocioCustom(nome);
+  fecharModal(); abrirModalCategorias(); render();
 }
 
 // ── AGRUPAMENTO ───────────────────────────────────────────────────────────────
@@ -1407,7 +1519,7 @@ function renderResumo(txs, recs, totalGasto, totalReceita, saldo, prevTotal, k, 
       </div>
       ${recs.length ? recs.map(r=>{
         const pct=(r.valor/totalReceita*100).toFixed(1);
-        const cfg=NEGOCIOS[r.fonte]||{cor:"#6b7280",icone:"💼"};
+        const cfg=getNegocioConfig(r.fonte);
         const hEsc = r._h.replace(/'/g,"\\'");
         return `<div class="rec-row">
           <div class="rec-row-top">
@@ -1444,6 +1556,9 @@ function renderResumo(txs, recs, totalGasto, totalReceita, saldo, prevTotal, k, 
     </div>` : "";
 
   document.getElementById("sec-resumo").innerHTML = `
+    <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+      <button class="add-mini" style="background:#475569" onclick="abrirModalCategorias()">🏷️ Gerenciar categorias</button>
+    </div>
     ${saldoCard}
 
     <div class="grid2">
