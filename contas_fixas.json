@@ -7,6 +7,13 @@
       "id": 1,
       "pago_mes": "2026-05",
       "ultimo_lembrete": "2026-06-15"
+    },
+    {
+      "descricao": "CREA",
+      "dia_vencimento": 30,
+      "id": 2,
+      "pago_mes": null,
+      "ultimo_lembrete": null
     }
   ]
 }
