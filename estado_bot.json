@@ -1,16 +1,16 @@
 {
-  "offset": 760343484,
+  "offset": 760343487,
   "ultima_verificacao_saldo": "2026-06-18",
   "aguardando_contexto": {
-    "texto_comprovante": "",
+    "texto_comprovante": "Comprovante de transfer\u00eancia\nRealizada em 18 jun 2026 \u00e0s 16:08:48\nValor Tipo\nR$ 50,00 Pix | Transfer\u00eancia\nDADOS DE DESTINO\nNome CPF\nGABRIEL TONES DA SILVA ***.263.934-**\nInstitui\u00e7\u00e3o\nBanco do Brasil S.A.\nDADOS DE ORIGEM\nNome CNPJ\nLAVE & LEVE 54.837.209/0001-33\nInstitui\u00e7\u00e3o Ag\u00eancia Conta\nSTONE INSTITUI\u00c7\u00c3O DE PAGAMENTO S.A. 0001 28235497-6\nINFORMA\u00c7\u00d5ES ADICIONAIS\nID da transa\u00e7\u00e3o C\u00f3digo da autentica\u00e7\u00e3o\nE16501555202606181908d3aab61a002 b63d3a0a-8f7f-4cf4-b237-78e7a1b6141c\nD\u00favidas? Acesse nossa Central de ajuda. Stone Institui\u00e7\u00e3o de Pagamento S.A.\nCNPJ 16.501.555/0001-57\nRegi\u00f5es Metropolitanas Outras Regi\u00f5es Ouvidoria\n3004-9680 0800 326 0506 0800 942 2174 Atendimento em dias \u00fateis, das 09h \u00e0s 18h (hor\u00e1rio de Bras\u00edlia). Voc\u00ea\ntamb\u00e9m, pode enviar um e-mail para ouvidoria@stone.com.br.",
     "dados_parciais": {
       "data": "18/06/2026",
-      "valor": 0.0,
-      "estabelecimento": "N\u00e3o identificado",
-      "descricao": "Comprovante n\u00e3o leg\u00edvel",
+      "valor": 50.0,
+      "estabelecimento": "GABRIEL TONES DA SILVA",
+      "descricao": "Transfer\u00eancia Pix",
       "categoria": "Outros",
-      "pagamento": "Outros",
-      "grupo": "nao-identificado"
+      "pagamento": "Pix",
+      "grupo": "transferencia-gabriel-tones"
     }
   }
 }
