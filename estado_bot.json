@@ -1,16 +1,15 @@
 {
-  "offset": 760343492,
+  "offset": 760343494,
   "ultima_verificacao_saldo": "2026-06-19",
   "aguardando_contexto": {
-    "texto_comprovante": "Comprovante do Pix\n19/06/2026 - 16:39:41\nValor pago\nR$ 750,00\nForma de pagamento\nAg 1667 Cc 1003583-4\nDados do recebedor\nPara\nSamuel Caetano da Silva 02516849460\nCNPJ\n47.***.***/0001-3*\nChave\nsamuelcaetano12@gmail.com\nInstitui\u00e7\u00e3o\nNU PAGAMENTOS - IP\nDados do pagador\nDe\nLeonardo Francisco Valadares Maia Cavalcanti\nCPF\n***.881.044-**\nInstitui\u00e7\u00e3o\nBCO SANTANDER (BRASIL) S.A.\nID/Transa\u00e7\u00e3o\nE9040088820260619193363971173302\nData e hora da transa\u00e7\u00e3o\n19/06/2026 - 16:39:41\nC\u00f3digo de autentica\u00e7\u00e3o\n82189B83431352E71770880\nComprovante do Pix 1/2\nCentral de Atendimento Santander\n4004-3535 (Capitais e Regi\u00f5es Metropolitanas)\n0800-702-3535 (Demais Localidades)\nSAC 0800-762-7777\nOuvidoria 0800-726-0332\nComprovante do Pix 2/2",
+    "texto_comprovante": "Comprovante de transfer\u00eancia\nRealizada em 19 jun 2026 \u00e0s 17:16:56\nValor Tipo\nR$ 155,48 Pix | Qr Code\nDADOS DE DESTINO\nNome CPF\nPerinaldo Manoel De Almeida ***.136.374-**\nInstitui\u00e7\u00e3o\nSTONE INSTITUI\u00c7\u00c3O DE PAGAMENTO S.A.\nDADOS DE ORIGEM\nNome CNPJ\nLAVE & LEVE 54.837.209/0001-33\nInstitui\u00e7\u00e3o Ag\u00eancia Conta\nSTONE INSTITUI\u00c7\u00c3O DE PAGAMENTO S.A. 0001 28235497-6\nINFORMA\u00c7\u00d5ES ADICIONAIS\nIdentificador\nSTONEPOSA2706eFTewXozRAhLNUCoiACyem\nID da transa\u00e7\u00e3o C\u00f3digo da autentica\u00e7\u00e3o\nE1650155520260619201678cfdb4d516 1d2ec0ba-3528-459c-8ead-e9d16c33a368\nD\u00favidas? Acesse nossa Central de ajuda. Stone Institui\u00e7\u00e3o de Pagamento S.A.\nCNPJ 16.501.555/0001-57\nRegi\u00f5es Metropolitanas Outras Regi\u00f5es Ouvidoria\n3004-9680 0800 326 0506 0800 942 2174 Atendimento em dias \u00fateis, das 09h \u00e0s 18h (hor\u00e1rio de Bras\u00edlia). Voc\u00ea\ntamb\u00e9m, pode enviar um e-mail para ouvidoria@stone.com.br.",
     "dados_parciais": {
       "data": "19/06/2026",
-      "valor": 750.0,
-      "estabelecimento": "Samuel Caetano da Silva",
+      "valor": 155.48,
+      "estabelecimento": "Perinaldo Manoel De Almeida",
       "descricao": "Transfer\u00eancia Pix",
       "categoria": "Outros",
-      "pagamento": "Pix",
-      "grupo": "samuel-caetano-silva"
+      "pagamento": "Pix"
     }
   }
 }
