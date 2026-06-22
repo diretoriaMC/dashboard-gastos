@@ -1,16 +1,16 @@
 {
-  "offset": 760343498,
+  "offset": 760343501,
   "ultima_verificacao_saldo": "2026-06-22",
   "aguardando_contexto": {
-    "texto_comprovante": "Comprovante de transfer\u00eancia\nRealizada em 22 jun 2026 \u00e0s 14:15:17\nValor Tipo\nR$ 200,00 Pix | Transfer\u00eancia\nDADOS DE DESTINO\nNome CPF\nERIVANIA DO NASCIMENTO OLIVEIRA ***.194.744-**\nInstitui\u00e7\u00e3o\nCAIXA ECONOMICA FEDERAL\nDADOS DE ORIGEM\nNome CNPJ\nLAVE & LEVE 54.837.209/0001-33\nInstitui\u00e7\u00e3o Ag\u00eancia Conta\nSTONE INSTITUI\u00c7\u00c3O DE PAGAMENTO S.A. 0001 28235497-6\nINFORMA\u00c7\u00d5ES ADICIONAIS\nID da transa\u00e7\u00e3o C\u00f3digo da autentica\u00e7\u00e3o\nE16501555202606221715d0efb3c7cf2 1e9bf4f3-326c-4b3e-a1bf-0b655e9659f2\nD\u00favidas? Acesse nossa Central de ajuda. Stone Institui\u00e7\u00e3o de Pagamento S.A.\nCNPJ 16.501.555/0001-57\nRegi\u00f5es Metropolitanas Outras Regi\u00f5es Ouvidoria\n3004-9680 0800 326 0506 0800 942 2174 Atendimento em dias \u00fateis, das 09h \u00e0s 18h (hor\u00e1rio de Bras\u00edlia). Voc\u00ea\ntamb\u00e9m, pode enviar um e-mail para ouvidoria@stone.com.br.",
+    "texto_comprovante": "Comprovante de transfer\u00eancia\nRealizada em 22 jun 2026 \u00e0s 17:59:11\nValor Tipo\nR$ 7,00 Pix | Qr Code\nDADOS DE DESTINO\nNome CNPJ\nVITORIA EMMANUELE DE CARVALHO 37.830.303/0001-41\n71498676421\nInstitui\u00e7\u00e3o\nMERCADO PAGO INSTITUI\u00c7\u00c3O DE\nPAGAMENTO LTDA.\nDADOS DE ORIGEM\nNome CNPJ\nLAVE & LEVE 54.837.209/0001-33\nInstitui\u00e7\u00e3o Ag\u00eancia Conta\nSTONE INSTITUI\u00c7\u00c3O DE PAGAMENTO S.A. 0001 28235497-6\nINFORMA\u00c7\u00d5ES ADICIONAIS\nIdentificador\nis2a07cef286744696ac963da9b1c0ad87\nID da transa\u00e7\u00e3o C\u00f3digo da autentica\u00e7\u00e3o\nE165015552026062220591189c53f13b 98a16002-2fe0-4f4d-9fb4-d02c6344e851\nD\u00favidas? Acesse nossa Central de ajuda. Stone Institui\u00e7\u00e3o de Pagamento S.A.\nCNPJ 16.501.555/0001-57\nRegi\u00f5es Metropolitanas Outras Regi\u00f5es Ouvidoria\n3004-9680 0800 326 0506 0800 942 2174 Atendimento em dias \u00fateis, das 09h \u00e0s 18h (hor\u00e1rio de Bras\u00edlia). Voc\u00ea\ntamb\u00e9m, pode enviar um e-mail para ouvidoria@stone.com.br.",
     "dados_parciais": {
       "data": "22/06/2026",
-      "valor": 200.0,
-      "estabelecimento": "ERIVANIA DO NASCIMENTO OLIVEIRA",
+      "valor": 7.0,
+      "estabelecimento": "VITORIA EMMANUELE DE CARVALHO",
       "descricao": "Transfer\u00eancia Pix",
       "categoria": "Outros",
       "pagamento": "Pix",
-      "grupo": "transferencias-pessoa-fisica"
+      "grupo": "transferencia-pix"
     }
   }
 }
