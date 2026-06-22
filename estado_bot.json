@@ -1,16 +1,16 @@
 {
-  "offset": 760343496,
+  "offset": 760343498,
   "ultima_verificacao_saldo": "2026-06-22",
   "aguardando_contexto": {
-    "texto_comprovante": "Comprovante de transfer\u00eancia\nRealizada em 22 jun 2026 \u00e0s 09:22:13\nValor Tipo\nR$ 143,57 Pix | Qr Code\nDADOS DE DESTINO\nNome CNPJ\nPAGAR.ME PAGAMENTOS 18.727.053/0001-74\nInstitui\u00e7\u00e3o\nSTONE INSTITUI\u00c7\u00c3O DE PAGAMENTO S.A.\nDADOS DE ORIGEM\nNome CNPJ\nLAVE & LEVE 54.837.209/0001-33\nInstitui\u00e7\u00e3o Ag\u00eancia Conta\nSTONE INSTITUI\u00c7\u00c3O DE PAGAMENTO S.A. 0001 28235497-6\nINFORMA\u00c7\u00d5ES ADICIONAIS\nIdentificador\n95e259104fadb91547dfe46187\nID da transa\u00e7\u00e3o C\u00f3digo da autentica\u00e7\u00e3o\nE16501555202606221222ac93f4b4c54 5d173bfc-7a9b-4b99-9ddf-c3cae5bbc048\nD\u00favidas? Acesse nossa Central de ajuda. Stone Institui\u00e7\u00e3o de Pagamento S.A.\nCNPJ 16.501.555/0001-57\nRegi\u00f5es Metropolitanas Outras Regi\u00f5es Ouvidoria\n3004-9680 0800 326 0506 0800 942 2174 Atendimento em dias \u00fateis, das 09h \u00e0s 18h (hor\u00e1rio de Bras\u00edlia). Voc\u00ea\ntamb\u00e9m, pode enviar um e-mail para ouvidoria@stone.com.br.",
+    "texto_comprovante": "Comprovante de transfer\u00eancia\nRealizada em 22 jun 2026 \u00e0s 14:15:17\nValor Tipo\nR$ 200,00 Pix | Transfer\u00eancia\nDADOS DE DESTINO\nNome CPF\nERIVANIA DO NASCIMENTO OLIVEIRA ***.194.744-**\nInstitui\u00e7\u00e3o\nCAIXA ECONOMICA FEDERAL\nDADOS DE ORIGEM\nNome CNPJ\nLAVE & LEVE 54.837.209/0001-33\nInstitui\u00e7\u00e3o Ag\u00eancia Conta\nSTONE INSTITUI\u00c7\u00c3O DE PAGAMENTO S.A. 0001 28235497-6\nINFORMA\u00c7\u00d5ES ADICIONAIS\nID da transa\u00e7\u00e3o C\u00f3digo da autentica\u00e7\u00e3o\nE16501555202606221715d0efb3c7cf2 1e9bf4f3-326c-4b3e-a1bf-0b655e9659f2\nD\u00favidas? Acesse nossa Central de ajuda. Stone Institui\u00e7\u00e3o de Pagamento S.A.\nCNPJ 16.501.555/0001-57\nRegi\u00f5es Metropolitanas Outras Regi\u00f5es Ouvidoria\n3004-9680 0800 326 0506 0800 942 2174 Atendimento em dias \u00fateis, das 09h \u00e0s 18h (hor\u00e1rio de Bras\u00edlia). Voc\u00ea\ntamb\u00e9m, pode enviar um e-mail para ouvidoria@stone.com.br.",
     "dados_parciais": {
       "data": "22/06/2026",
-      "valor": 143.57,
-      "estabelecimento": "PAGAR.ME PAGAMENTOS",
-      "descricao": "Transfer\u00eancia Pix para PAGAR.ME PAGAMENTOS",
-      "categoria": "Servi\u00e7os",
+      "valor": 200.0,
+      "estabelecimento": "ERIVANIA DO NASCIMENTO OLIVEIRA",
+      "descricao": "Transfer\u00eancia Pix",
+      "categoria": "Outros",
       "pagamento": "Pix",
-      "grupo": "pagar-me"
+      "grupo": "transferencias-pessoa-fisica"
     }
   }
 }
