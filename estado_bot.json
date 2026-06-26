@@ -1,16 +1,5 @@
 {
-  "offset": 760343510,
+  "offset": 760343512,
   "ultima_verificacao_saldo": "2026-06-26",
-  "aguardando_contexto": {
-    "texto_comprovante": "Comprovante de transfer\u00eancia\nRealizada em 25 jun 2026 \u00e0s 20:50:36\nValor Tipo\nR$ 36,00 Pix | Transfer\u00eancia\nDADOS DE DESTINO\nNome CPF\nSalvino Jose da Silva ***.735.064-**\nInstitui\u00e7\u00e3o\nMERCADO PAGO INSTITUI\u00c7\u00c3O DE\nPAGAMENTO LTDA.\nDADOS DE ORIGEM\nNome CNPJ\nLAVE & LEVE 54.837.209/0001-33\nInstitui\u00e7\u00e3o Ag\u00eancia Conta\nSTONE INSTITUI\u00c7\u00c3O DE PAGAMENTO S.A. 0001 28235497-6\nINFORMA\u00c7\u00d5ES ADICIONAIS\nID da transa\u00e7\u00e3o C\u00f3digo da autentica\u00e7\u00e3o\nE165015552026062523501ee4acf22e9 80f0f524-7fc6-4d53-84a8-98199339b758\nD\u00favidas? Acesse nossa Central de ajuda. Stone Institui\u00e7\u00e3o de Pagamento S.A.\nCNPJ 16.501.555/0001-57\nRegi\u00f5es Metropolitanas Outras Regi\u00f5es Ouvidoria\n3004-9680 0800 326 0506 0800 942 2174 Atendimento em dias \u00fateis, das 09h \u00e0s 18h (hor\u00e1rio de Bras\u00edlia). Voc\u00ea\ntamb\u00e9m, pode enviar um e-mail para ouvidoria@stone.com.br.",
-    "dados_parciais": {
-      "data": "25/06/2026",
-      "valor": 36.0,
-      "estabelecimento": "Salvino Jose da Silva",
-      "descricao": "Transfer\u00eancia Pix",
-      "categoria": "Outros",
-      "pagamento": "Pix",
-      "grupo": "transferencia-pix"
-    }
-  }
+  "aguardando_contexto": null
 }
