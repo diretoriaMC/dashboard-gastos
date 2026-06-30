@@ -1,5 +1,16 @@
 {
-  "offset": 760343515,
+  "offset": 760343516,
   "ultima_verificacao_saldo": "2026-06-30",
-  "aguardando_contexto": null
+  "aguardando_contexto": {
+    "texto_comprovante": "Comprovante de transfer\u00eancia\nRealizada em 30 jun 2026 \u00e0s 16:22:49\nValor Tipo\nR$ 85,35 Pix | Transfer\u00eancia\nDADOS DE DESTINO\nNome CPF\nPerinaldo Manoel de Almeida ***.136.374-**\nInstitui\u00e7\u00e3o\nPAGSEGURO INTERNET INSTITUI\u00c7\u00c3O DE\nPAGAMENTO S.A.\nDADOS DE ORIGEM\nNome CNPJ\nLAVE & LEVE 54.837.209/0001-33\nInstitui\u00e7\u00e3o Ag\u00eancia Conta\nSTONE INSTITUI\u00c7\u00c3O DE PAGAMENTO S.A. 0001 28235497-6\nINFORMA\u00c7\u00d5ES ADICIONAIS\nID da transa\u00e7\u00e3o C\u00f3digo da autentica\u00e7\u00e3o\nE16501555202606301922142835e453a f6f0cde0-9473-4d94-998e-753ba6e18aed\nD\u00favidas? Acesse nossa Central de ajuda. Stone Institui\u00e7\u00e3o de Pagamento S.A.\nCNPJ 16.501.555/0001-57\nRegi\u00f5es Metropolitanas Outras Regi\u00f5es Ouvidoria\n3004-9680 0800 326 0506 0800 942 2174 Atendimento em dias \u00fateis, das 09h \u00e0s 18h (hor\u00e1rio de Bras\u00edlia). Voc\u00ea\ntamb\u00e9m, pode enviar um e-mail para ouvidoria@stone.com.br.",
+    "dados_parciais": {
+      "data": "30/06/2026",
+      "valor": 85.35,
+      "estabelecimento": "Perinaldo Manoel de Almeida",
+      "descricao": "Transfer\u00eancia Pix",
+      "categoria": "Outros",
+      "pagamento": "Pix",
+      "grupo": "transferencias"
+    }
+  }
 }
