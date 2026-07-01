@@ -1,16 +1,16 @@
 {
-  "offset": 760343521,
+  "offset": 760343522,
   "ultima_verificacao_saldo": "2026-07-01",
   "aguardando_contexto": {
-    "texto_comprovante": "Comprovante de transfer\u00eancia\nRealizada em 01 jul 2026 \u00e0s 16:38:04\nValor Tipo\nR$ 110,70 Pix | Qr Code\nDADOS DE DESTINO\nNome CNPJ\nFERREIRA COSTA & CIA LTDA 10.230.480/0019-60\nInstitui\u00e7\u00e3o\nITA\u00da UNIBANCO S.A.\nDADOS DE ORIGEM\nNome CNPJ\nLAVE & LEVE 54.837.209/0001-33\nInstitui\u00e7\u00e3o Ag\u00eancia Conta\nSTONE INSTITUI\u00c7\u00c3O DE PAGAMENTO S.A. 0001 28235497-6\nINFORMA\u00c7\u00d5ES ADICIONAIS\nIdentificador\nSE000000000020F7P08GB8186F11DBOLGX\nID da transa\u00e7\u00e3o C\u00f3digo da autentica\u00e7\u00e3o\nE165015552026070119375ebde0f8d72 a097640a-63df-4938-b9f4-527024796414\nD\u00favidas? Acesse nossa Central de ajuda. Stone Institui\u00e7\u00e3o de Pagamento S.A.\nCNPJ 16.501.555/0001-57\nRegi\u00f5es Metropolitanas Outras Regi\u00f5es Ouvidoria\n3004-9680 0800 326 0506 0800 942 2174 Atendimento em dias \u00fateis, das 09h \u00e0s 18h (hor\u00e1rio de Bras\u00edlia). Voc\u00ea\ntamb\u00e9m, pode enviar um e-mail para ouvidoria@stone.com.br.",
+    "texto_comprovante": "Comprovante de transfer\u00eancia\nRealizada em 01 jul 2026 \u00e0s 18:14:58\nValor Tipo\nR$ 47,80 Pix | Qr Code\nDADOS DE DESTINO\nNome CNPJ\nZAMP S.A. 13.574.594/0001-96\nInstitui\u00e7\u00e3o\nBanco Bradesco S.A.\nDADOS DE ORIGEM\nNome CNPJ\nLAVE & LEVE 54.837.209/0001-33\nInstitui\u00e7\u00e3o Ag\u00eancia Conta\nSTONE INSTITUI\u00c7\u00c3O DE PAGAMENTO S.A. 0001 28235497-6\nINFORMA\u00c7\u00d5ES ADICIONAIS\nIdentificador\nSE000400010440EZ3GTUGNTN186SRPR7C6\nID da transa\u00e7\u00e3o C\u00f3digo da autentica\u00e7\u00e3o\nE1650155520260701211477c0c5d185b 3d38e10c-c9e3-45c1-acf4-364be01603bd\nD\u00favidas? Acesse nossa Central de ajuda. Stone Institui\u00e7\u00e3o de Pagamento S.A.\nCNPJ 16.501.555/0001-57\nRegi\u00f5es Metropolitanas Outras Regi\u00f5es Ouvidoria\n3004-9680 0800 326 0506 0800 942 2174 Atendimento em dias \u00fateis, das 09h \u00e0s 18h (hor\u00e1rio de Bras\u00edlia). Voc\u00ea\ntamb\u00e9m, pode enviar um e-mail para ouvidoria@stone.com.br.",
     "dados_parciais": {
       "data": "01/07/2026",
-      "valor": 110.7,
-      "estabelecimento": "FERREIRA COSTA & CIA LTDA",
+      "valor": 47.8,
+      "estabelecimento": "ZAMP S.A.",
       "descricao": "Transfer\u00eancia Pix",
       "categoria": "Outros",
       "pagamento": "Pix",
-      "grupo": "ferreira-costa-cia"
+      "grupo": "zamp-sa"
     }
   }
 }
